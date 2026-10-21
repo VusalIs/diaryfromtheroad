@@ -2,11 +2,13 @@
 
 All notable changes to Quiet Pages are documented here.
 
-## Unreleased
+## 3.0.1 - 2026-10-21
 
 - The article byline shows the author on one row and the date, reading time, and Share button on a second row.
 - Breadcrumbs stay on one line and shorten the current page title to fit.
 - Article breadcrumbs leave out the post title on small screens.
+- Updated Astro to 7.4.1 and other dependencies.
+- Updated `AGENTS.md` for Astro 7.
 
 ## 3.0.0 - 2026-10-08
 
