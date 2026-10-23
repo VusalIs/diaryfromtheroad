@@ -1,27 +1,11 @@
 {
-  "name": "quietpages-astro-theme",
-  "description": "A free Astro magazine theme for essays, field notes, and long-form writing, with an aurora hero, a filterable archive, a search palette, and light and dark modes.",
+  "name": "diary-from-the-road",
+  "description": "Diary From the Road: a personal journal about travel in Southeast Asia, motorcycles, money, remote work, and building software.",
   "type": "module",
-  "version": "3.0.1",
-  "author": "Andrei Alba",
+  "version": "0.1.0",
+  "author": "Vusal Ismayilov",
   "license": "MIT",
   "private": true,
-  "keywords": [
-    "astro-theme",
-    "astro",
-    "blog",
-    "magazine",
-    "editorial",
-    "writing",
-    "essays",
-    "mdx",
-    "tailwindcss"
-  ],
-  "homepage": "https://quietpages.xocoweb.workers.dev/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/xocothemes/quietpages.git"
-  },
   "engines": {
     "node": ">=22.12.0"
   },
@@ -29,7 +13,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
-    "release:check": "npm run check && npm run build && npm run format:check",
+    "test": "node --experimental-strip-types --experimental-sqlite --disable-warning=ExperimentalWarning --test \"tests/**/*.test.ts\"",
+    "release:check": "npm run check && npm test && npm run build && npm run format:check",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write .",
@@ -39,13 +24,15 @@
     "yaml": "^2.8.3"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^14.4.2",
     "@astrojs/mdx": "^8.1.0",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.1",
     "sharp": "^0.35.5",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "wrangler": "^4.152.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.11",

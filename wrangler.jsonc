@@ -1,11 +1,29 @@
 {
-  "name": "quietpages",
+  "name": "diary-from-the-road",
   "compatibility_date": "2026-10-08",
-  "build": {
-    "command": "npm run build",
-  },
+  // Deploy with `npm run build`, then `npx wrangler deploy`, which uses the Worker config the build writes.
+  // The workers.dev URL serves the site until diaryfromtheroad.com is connected; robots.txt keeps it
+  // out of search engines, and canonical URLs point at the domain. See README.md.
+  "workers_dev": true,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
+  },
+  // Email subscribers: off for the first launch, so no database is bound and sign-up stays closed.
+  // To enable it (SUBSCRIPTIONS.md), create the database, then uncomment this block with its real ID.
+  // Local development with `--local` commands never touches the remote database.
+  // "d1_databases": [
+  //   {
+  //     "binding": "SUBSCRIBERS_DB",
+  //     "database_name": "diary-subscribers",
+  //     "database_id": "<the ID that `npx wrangler d1 create diary-subscribers` prints>",
+  //     "migrations_dir": "migrations",
+  //   },
+  // ],
+  "vars": {
+    // The sender for confirmation emails, at a domain verified in Resend, e.g.
+    // "Diary From the Road <posts@your-domain>". Empty keeps sign-up closed in production.
+    // Secrets (TURNSTILE_SECRET_KEY, RESEND_API_KEY) are set with `wrangler secret put`, never here.
+    "EMAIL_FROM": "",
   },
 }

@@ -13,8 +13,10 @@ export const siteConfig = {
   title: "Diary From the Road",
   description:
     "Notes from the road on travel, motorcycles, money, remote work, and building things along the way.",
-  // TODO: set to the production domain before launch. Canonical URLs, the feed, and the sitemap use it.
-  siteUrl: "https://quietpages.xocoweb.workers.dev",
+  // The canonical domain, without a trailing slash. Canonical URLs, Open Graph tags, the feed, the
+  // sitemap, and the links in subscription emails use it, and only this host may be crawled.
+  // Until the domain is connected the site runs on its workers.dev URL; see README.md.
+  siteUrl: "https://diaryfromtheroad.com",
   language: "en",
   locale: "en_US",
   dateLocale: "en-US",
@@ -31,14 +33,6 @@ export const siteConfig = {
   /** Shown in the footer and on the Contact page. Leave it empty and both email links are hidden. */
   email: "",
 
-  /**
-   * POST endpoint for the contact form. Leave it empty and the form runs in demo mode:
-   * it validates and confirms, but sends nothing.
-   */
-  forms: {
-    contact: "",
-  },
-
   /** Profiles shown in the footer and on the Contact page, e.g.
    *  `{ label: "GitHub", href: "https://github.com/you", icon: "github" }`. */
   socials: [
@@ -46,6 +40,15 @@ export const siteConfig = {
     { label: "X", href: "https://x.com/diaryfromroad", icon: "twitter-x" },
     { label: "Reddit", href: "https://www.reddit.com/user/caspian_drifter_728/", icon: "reddit" },
   ] satisfies SocialLink[],
+
+  /**
+   * Email sign-up (SUBSCRIPTIONS.md). Leave `enabled` false until every production step there is
+   * done and checked: while it is false, production builds leave the form out and the server
+   * refuses sign-ups. `npm run dev` ignores it.
+   */
+  subscriptions: {
+    enabled: false,
+  },
 };
 
 export const navigation: NavLink[] = [
@@ -55,4 +58,7 @@ export const navigation: NavLink[] = [
 ];
 
 /** The footer's links: only what the header navigation doesn't already offer. */
-export const footerLinks: NavLink[] = [{ label: "RSS feed", href: "/rss.xml" }];
+export const footerLinks: NavLink[] = [
+  { label: "RSS feed", href: "/rss.xml" },
+  { label: "Privacy", href: "/privacy/" },
+];

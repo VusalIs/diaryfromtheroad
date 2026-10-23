@@ -1,0 +1,75 @@
+---
+import PageHeader from "@/components/ui/PageHeader.astro";
+import { siteConfig } from "@/config/site";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { confirmSubscription, isToken, readForm } from "@/lib/subscriptions";
+import { getSubscribersDb } from "@/lib/subscriptions-env";
+
+/* Rendered on request. Opening the emailed link only shows a button: confirming takes a POST,
+   so mail scanners that follow links can't subscribe someone on their own. */
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+
+const db = getSubscribersDb();
+let token = Astro.url.searchParams.get("token") ?? "";
+let state: "ask" | "confirmed" | "invalid" | "closed" | "error" = !db
+  ? "closed"
+  : isToken(token)
+    ? "ask"
+    : "invalid";
+
+if (db && Astro.request.method === "POST") {
+  const form = await readForm(Astro.request);
+  token = form?.get("token") ?? token;
+  try {
+    state = await confirmSubscription(token, { db });
+  } catch {
+    state = "error";
+  }
+}
+
+const copy = {
+  ask: {
+    title: "Confirm your subscription.",
+    lead: `You'll get an email when a new post is published on ${siteConfig.name}.`,
+  },
+  confirmed: {
+    title: "You're subscribed.",
+    lead: "You'll get an email when I publish a new post. Every email has a link to unsubscribe.",
+  },
+  invalid: {
+    title: "This link no longer works.",
+    lead: "Confirmation links work once, for 48 hours. If you've already confirmed, you're subscribed; if not, sign up again at the end of any post.",
+  },
+  closed: {
+    title: "Email sign-up isn't open yet.",
+    lead: "Nothing was confirmed. Please try again later.",
+  },
+  error: {
+    title: "Something went wrong.",
+    lead: "Your subscription wasn't confirmed. Please open the link again later.",
+  },
+}[state];
+Astro.response.status = { ask: 200, confirmed: 200, invalid: 400, closed: 503, error: 500 }[state];
+---
+
+<BaseLayout title="Confirm subscription" description={copy.lead} noindex>
+  <PageHeader title={copy.title} lead={copy.lead}>
+    {state === "ask" ? (
+      <form method="post" class="rise mt-10" style="--rise-order: 3">
+        <input type="hidden" name="token" value={token} />
+        <button type="submit" class="btn btn-primary">
+          Confirm subscription
+        </button>
+      </form>
+    ) : (
+      <p class="rise mt-10" style="--rise-order: 3">
+        <a href="/blog/" class="text-link">
+          Read the journal
+        </a>
+      </p>
+    )}
+  </PageHeader>
+</BaseLayout>

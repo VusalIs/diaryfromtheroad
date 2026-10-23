@@ -106,7 +106,7 @@ const schema = structuredData ?? websiteSchema();
     <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
     <script is:inline>
       (() => {
-        const storageKey = "quietpages-theme";
+        const storageKey = "diary-theme";
         const root = document.documentElement;
         const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
         let stored = null;

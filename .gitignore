@@ -18,15 +18,16 @@ coverage
 .env*
 !.env.example
 
-# Internal release/workflow notes
-RELEASE_CHECKLIST.md
-
-# Wrangler / Cloudflare
+# Wrangler / Cloudflare: local secrets, including per-environment files such as .dev.vars.staging
 .wrangler/
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
+# Output of `wrangler types`, not used: its runtime types replace the DOM types the browser scripts need
+worker-configuration.d.ts
 
-# Vercel
-.vercel
+# Subscriber exports hold personal data
+subscribers*.csv
 
 # Editor directories and files
 test-results

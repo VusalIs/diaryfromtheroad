@@ -1,9 +1,11 @@
 ---
 import { Image, getImage } from "astro:assets";
 import { render } from "astro:content";
+import { PUBLIC_TURNSTILE_SITE_KEY } from "astro:env/client";
 import Breadcrumbs from "@/components/blog/Breadcrumbs.astro";
 import PostCard from "@/components/blog/PostCard.astro";
 import ShareSheet from "@/components/blog/ShareSheet.astro";
+import SubscribeForm from "@/components/blog/SubscribeForm.astro";
 import Lightbox from "@/components/blog/Lightbox.astro";
 import TableOfContents from "@/components/blog/TableOfContents.astro";
 import Figure from "@/components/mdx/Figure.astro";
@@ -24,6 +26,7 @@ import {
   type Post,
 } from "@/lib/posts";
 import { absolute, withBreadcrumbs, type Crumb } from "@/lib/schema";
+import { formSiteKey } from "@/lib/subscriptions";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -43,6 +46,13 @@ const related = (await getRelatedPosts(post, 5))
   .filter((item) => item.slug !== newer?.slug && item.slug !== older?.slug)
   .slice(0, 3);
 const url = absolute(postUrl(post));
+/* The email sign-up form, once it is configured and enabled (SUBSCRIPTIONS.md). */
+const subscribeSiteKey = formSiteKey({
+  siteKey: PUBLIC_TURNSTILE_SITE_KEY,
+  production: import.meta.env.PROD,
+  enabled: siteConfig.subscriptions.enabled,
+  siteUrl: siteConfig.siteUrl,
+});
 const card = await getImage({
   src: post.thumbnail,
   width: 1200,
@@ -199,6 +209,8 @@ const schema = withBreadcrumbs(
             Share this post
           </button>
         </div>
+
+        {subscribeSiteKey && <SubscribeForm siteKey={subscribeSiteKey} />}
 
         <nav class="mt-10 grid gap-4 sm:grid-cols-2" aria-label="More writing">
           {older && (

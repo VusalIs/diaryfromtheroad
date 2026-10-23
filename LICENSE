@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-Third-party assets bundled with this theme keep their own licenses:
+Third-party assets bundled with this project keep their own licenses:
 
 - Newsreader (public/fonts/newsreader) — SIL Open Font License 1.1.
   See public/fonts/newsreader/OFL.txt.
@@ -33,6 +33,5 @@ Third-party assets bundled with this theme keep their own licenses:
 - Bootstrap Icons (src/icons/bootstrap) — MIT License.
   See src/icons/bootstrap/LICENSE.md.
 
-The demo cover images (Unsplash) and author portraits (Pexels) are credited in
-each post's frontmatter and in src/config/authors.ts. They are not covered by
-the MIT License above; replace them with your own before publishing.
+The homepage photograph (src/assets/hero-road.jpg), by Hoang Ngo on Unsplash,
+is not covered by the MIT License above.

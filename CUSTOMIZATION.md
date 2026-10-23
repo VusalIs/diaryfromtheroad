@@ -1,10 +1,10 @@
 # Customization Guide
 
-Use this guide when adapting Quiet Pages for a real publication.
+How Diary From the Road is put together, and where to change each part of it.
 
 ## Site Settings
 
-Edit [src/config/site.ts](./src/config/site.ts) first. It holds the site's name, the default metadata, the canonical domain, the language and date locale, the social image, the author, the contact email, the contact form endpoint, and the social links.
+Edit [src/config/site.ts](./src/config/site.ts) first. It holds the site's name, the default metadata, the canonical domain, the language and date locale, the social image, the author, the contact email, and the social links.
 
 Set `siteConfig.siteUrl` before building for production. Canonical URLs, social image URLs, the RSS feed, `robots.txt`, the sitemap, and JSON-LD all derive from it.
 
@@ -13,7 +13,7 @@ Set `siteConfig.siteUrl` before building for production. Canonical URLs, social 
 | `name`           | The wordmark in the header and footer, the `<title>` suffix on every page, the feed title  |
 | `title`          | The homepage `<title>` and its social title                                                |
 | `description`    | The default meta description, the feed description, and the line under the footer wordmark |
-| `siteUrl`        | The production domain, without a trailing slash                                            |
+| `siteUrl`        | The canonical domain, `https://diaryfromtheroad.com`, without a trailing slash             |
 | `language`       | The `lang` attribute, the feed language, and the language in structured data               |
 | `locale`         | The Open Graph locale, for example `en_US`                                                 |
 | `dateLocale`     | How dates are written, for example `en-US` or `en-GB`                                      |
@@ -21,16 +21,16 @@ Set `siteConfig.siteUrl` before building for production. Canonical URLs, social 
 | `wordsPerMinute` | The reading speed used to estimate read time when a post has no `readingTime`              |
 | `author`         | The journal's single author; see [Author](#author)                                         |
 | `email`          | The Contact page address and the footer's mail icon; leave it empty to hide both           |
-| `forms`          | The contact form endpoint; see [Forms](#forms)                                             |
 | `socials`        | The icon links in the footer and the chips on the Contact page; empty by default           |
+| `subscriptions`  | `enabled` opens email sign-up in production; see [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)    |
 
 Each social link takes a `label`, an `href`, and an `icon`, which is a file name from [src/icons/bootstrap](./src/icons/bootstrap) such as `twitter-x`, `bluesky`, `github`, `mastodon`, `instagram`, or `threads`.
 
-`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. The header holds only Journal, Apps, and About, plus search and the theme toggle; the wordmark links home. Topics have no header link: readers reach them from the Journal's "Browse by topic" link and Topic menu, each card's topic label, and the article breadcrumbs. `footerLinks` is the footer's single row of links, beside the wordmark, and holds only what the header doesn't: the RSS feed. Tags, the Tags page, and the Contact page are not linked from the header or footer; tags are reached from articles and the Journal's filter.
+`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. The header holds only Journal, Apps, and About, plus search and the theme toggle; the wordmark links home. Topics have no header link: readers reach them from the Journal's "Browse by topic" link and Topic menu, each card's topic label, and the article breadcrumbs. `footerLinks` is the footer's single row of links, beside the wordmark, and holds only what the header doesn't: the RSS feed and the privacy notice. Tags, the Tags page, and the Contact page are not linked from the header or footer; tags are reached from articles and the Journal's filter.
 
-The header and footer show `name` as a serif wordmark. The favicon is [public/favicon.svg](./public/favicon.svg), which has the accent color written into it. The footer's copyright line and type credit are in [src/components/chrome/SiteFooter.astro](./src/components/chrome/SiteFooter.astro).
+The header and footer show `name` as a serif wordmark. The favicon is [public/favicon.svg](./public/favicon.svg), a plain "D" monogram in the ink and canvas colors, written into the file; replace it with your own mark. The footer's copyright line and type credit are in [src/components/chrome/SiteFooter.astro](./src/components/chrome/SiteFooter.astro).
 
-The About and Contact pages are written directly in [src/pages/about.astro](./src/pages/about.astro) and [src/pages/contact.astro](./src/pages/contact.astro). The About page shows the site description under its heading; a comment in the file marks where your own text goes.
+The About and Contact pages are written directly in [src/pages/about.astro](./src/pages/about.astro) and [src/pages/contact.astro](./src/pages/contact.astro). The About page shows the site description under its heading; a comment in the file marks where your own text goes. The Contact page has no form: it links the Instagram profile in `socials` by its handle, lists the other profiles and the RSS feed under "Elsewhere", and shows `email` when it is set.
 
 ## Author
 
@@ -197,6 +197,7 @@ To add another filter, such as a country:
 - **The reading column** is set in Newsreader at 18–20px, 37rem wide, which keeps lines near 70 characters. Pictures break out wider.
 - **On this page** lists the body's `##` and `###` headings in a rail from `80rem`, and highlights the one being read. It appears when a post has at least two headings. Change the filter in [src/components/blog/TableOfContents.astro](./src/components/blog/TableOfContents.astro) to include `####`.
 - **Tags** link to their tag pages.
+- **Email sign-up**, [src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro), follows the share row once `PUBLIC_TURNSTILE_SITE_KEY` is set at build time. Without the key, neither the form nor its script is on the page. See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md).
 - **The share sheet**, [src/components/blog/ShareSheet.astro](./src/components/blog/ShareSheet.astro), is a native `<dialog>` opened by the Share buttons in the byline and at the end of the article, or by any element with `data-share-open`. It lists seven services, with Bluesky, Mastodon, Reddit, and Pinterest behind **More**, and a copy-link field. Every target is a plain link built from the canonical URL, so no third-party script is loaded. Add or reorder entries in `targets` and `extraTargets`. The Share buttons are hidden without JavaScript.
 - **Previous and next** follow publication order across the whole journal: Previous is the older post, Next the newer one.
 - **Keep reading** shows three related posts, scored in `getRelatedPosts` in [src/lib/posts.ts](./src/lib/posts.ts): two points for sharing the topic, one for each shared tag, newest first on a tie.
@@ -265,43 +266,39 @@ Interface icons are SVG files in [src/icons/lucide](./src/icons/lucide) (Lucide)
 
 To add an icon, save its SVG from [lucide.dev](https://lucide.dev/) into `src/icons/lucide` and use its file name, or save a brand mark from [icons.getbootstrap.com](https://icons.getbootstrap.com/) into `src/icons/bootstrap` and use it as `social-<file name>`. A name with no matching file throws an error and stops the build, so a missing icon never ships as a blank square.
 
-## Forms
+## Following and Contact
 
-There is no newsletter: readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head.
+Readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head. They reach you through the profiles in `siteConfig.socials`, shown in the footer and on the Contact page, and through `siteConfig.email` once you set it. There is no contact form.
 
-The form on the Contact page posts to `siteConfig.forms.contact`:
-
-```ts
-forms: {
-  contact: "https://example.com/contact",
-},
-```
-
-While the endpoint is empty, the default, the form runs in demo mode: it validates, clears, and shows a confirmation, but sends nothing. The confirmation says so, and without JavaScript the form is hidden, so nobody submits into nothing.
-
-Set an HTTPS endpoint from a form service and the form becomes a plain `POST` to it, with no JavaScript involved. The fields are named `name`, `email`, `topic`, and `message`; rename them in [src/pages/contact.astro](./src/pages/contact.astro) if your provider expects other names. The demo confirmation is the form's `data-success` attribute, and demo mode is handled by [src/scripts/forms.ts](./src/scripts/forms.ts).
+The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It stays closed until its production setup is done and `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), says what the list stores and why; the form and the footer link to it.
 
 ## Routes
 
 Every URL ends with a trailing slash (`trailingSlash: "always"` in `astro.config.mjs`). Keep internal links in that form; in development a link without the slash returns a 404.
 
-| Page         | Source                                                                 | URL                   |
-| ------------ | ---------------------------------------------------------------------- | --------------------- |
-| Home         | [src/pages/index.astro](./src/pages/index.astro)                       | `/`                   |
-| Journal      | [src/pages/blog/index.astro](./src/pages/blog/index.astro)             | `/blog/`              |
-| Article      | `src/pages/blog/[slug].astro`                                          | `/blog/<slug>/`       |
-| Topics       | [src/pages/categories/index.astro](./src/pages/categories/index.astro) | `/categories/`        |
-| Topic        | `src/pages/categories/[slug].astro`                                    | `/categories/<slug>/` |
-| Tags         | [src/pages/tags/index.astro](./src/pages/tags/index.astro)             | `/tags/`              |
-| Tag          | `src/pages/tags/[slug].astro`                                          | `/tags/<slug>/`       |
-| Apps         | [src/pages/apps/index.astro](./src/pages/apps/index.astro)             | `/apps/`              |
-| About        | [src/pages/about.astro](./src/pages/about.astro)                       | `/about/`             |
-| Contact      | [src/pages/contact.astro](./src/pages/contact.astro)                   | `/contact/`           |
-| Not found    | [src/pages/404.astro](./src/pages/404.astro)                           | `/404.html`           |
-| Feed         | [src/pages/rss.xml.ts](./src/pages/rss.xml.ts)                         | `/rss.xml`            |
-| Search index | [src/pages/search-index.json.ts](./src/pages/search-index.json.ts)     | `/search-index.json`  |
-| Robots       | [src/pages/robots.txt.ts](./src/pages/robots.txt.ts)                   | `/robots.txt`         |
-| Sitemap      | generated by `@astrojs/sitemap`                                        | `/sitemap-index.xml`  |
+| Page         | Source                                                                   | URL                   |
+| ------------ | ------------------------------------------------------------------------ | --------------------- |
+| Home         | [src/pages/index.astro](./src/pages/index.astro)                         | `/`                   |
+| Journal      | [src/pages/blog/index.astro](./src/pages/blog/index.astro)               | `/blog/`              |
+| Article      | `src/pages/blog/[slug].astro`                                            | `/blog/<slug>/`       |
+| Topics       | [src/pages/categories/index.astro](./src/pages/categories/index.astro)   | `/categories/`        |
+| Topic        | `src/pages/categories/[slug].astro`                                      | `/categories/<slug>/` |
+| Tags         | [src/pages/tags/index.astro](./src/pages/tags/index.astro)               | `/tags/`              |
+| Tag          | `src/pages/tags/[slug].astro`                                            | `/tags/<slug>/`       |
+| Apps         | [src/pages/apps/index.astro](./src/pages/apps/index.astro)               | `/apps/`              |
+| About        | [src/pages/about.astro](./src/pages/about.astro)                         | `/about/`             |
+| Contact      | [src/pages/contact.astro](./src/pages/contact.astro)                     | `/contact/`           |
+| Privacy      | [src/pages/privacy.astro](./src/pages/privacy.astro)                     | `/privacy/`           |
+| Not found    | [src/pages/404.astro](./src/pages/404.astro)                             | `/404.html`           |
+| Feed         | [src/pages/rss.xml.ts](./src/pages/rss.xml.ts)                           | `/rss.xml`            |
+| Search index | [src/pages/search-index.json.ts](./src/pages/search-index.json.ts)       | `/search-index.json`  |
+| Robots       | [src/pages/robots.txt.ts](./src/pages/robots.txt.ts)                     | `/robots.txt`         |
+| Sitemap      | generated by `@astrojs/sitemap`                                          | `/sitemap-index.xml`  |
+| Sign-up      | [src/pages/api/subscribe.ts](./src/pages/api/subscribe.ts)               | `/api/subscribe/`     |
+| Confirm      | [src/pages/subscribe/confirm.astro](./src/pages/subscribe/confirm.astro) | `/subscribe/confirm/` |
+| Unsubscribe  | [src/pages/unsubscribe.astro](./src/pages/unsubscribe.astro)             | `/unsubscribe/`       |
+
+Every route is prerendered except `robots.txt` and the last three, which render on request in the Worker (`export const prerender = false`). The confirm and unsubscribe pages are `noindex` and left out of the sitemap.
 
 Topic and tag pages list every post they hold on one page. If a topic outgrows that, add Astro's `paginate` to its route.
 
@@ -347,7 +344,7 @@ To change them, replace the files, update the `@font-face` rules, set `--font-sa
 
 ## Light and Dark Mode
 
-The site follows the reader's system setting until they press the theme toggle; their choice is then remembered in `localStorage` under `quietpages-theme`. The script in [src/layouts/BaseLayout.astro](./src/layouts/BaseLayout.astro) applies the mode before the first paint, so there is no flash.
+The site follows the reader's system setting until they press the theme toggle; their choice is then remembered in `localStorage` under `diary-theme`. The script in [src/layouts/BaseLayout.astro](./src/layouts/BaseLayout.astro) applies the mode before the first paint, so there is no flash.
 
 Dark mode is the `dark` class on `<html>`. Use the `dark:` variant in markup, or `.dark` in CSS. The toggle is hidden without JavaScript, when the system setting decides.
 
@@ -374,17 +371,18 @@ Page headers rise in on load: add `rise` to an element to opt it in, and `style=
 
 - Every page has a canonical URL, Open Graph and Twitter/X tags, and JSON-LD. The schemas are built with the helpers in [src/lib/schema.ts](./src/lib/schema.ts): `WebSite` with a `SearchAction` on the homepage, `BlogPosting` on articles with `siteConfig.author` as its author and publisher, `CollectionPage` on the journal and the topic and tag pages, and `AboutPage` and `ContactPage`. Every page below the homepage adds a `BreadcrumbList` matching its visible breadcrumbs.
 - `/rss.xml` lists every published post, newest first, with its excerpt, the author's name, and its topic.
-- `/sitemap-index.xml` is generated by `@astrojs/sitemap`, and `/robots.txt` points to it.
+- `/sitemap-index.xml` is generated by `@astrojs/sitemap`, and `/robots.txt` points to it. `robots.txt` is rendered on request by [src/lib/robots.ts](./src/lib/robots.ts): it allows crawling only on the exact origin in `siteUrl` and disallows everything on other hosts, such as the Worker's `workers.dev` URL, preview URLs, `www.`, and plain `http`, so they don't compete with the real site. `/api/` is disallowed everywhere.
 
 ## Deployment
 
-`npm run build` writes the static site to `dist/`. [vercel.json](./vercel.json) configures Vercel and [wrangler.jsonc](./wrangler.jsonc) deploys to Cloudflare Workers with `npx wrangler deploy`. Any other static host works with `dist/` as the output directory and `npm run build` as the build command. Delete the config files for hosts you do not use.
+The site is a Cloudflare Worker, built with the `@astrojs/cloudflare` adapter: `npm run build` writes the prerendered pages to `dist/client` and the Worker to `dist/server`, and `npx wrangler deploy` uploads both. [wrangler.jsonc](./wrangler.jsonc) holds the Worker's name (`diary-from-the-road`), its `workers.dev` setting, the static-asset settings, the `SUBSCRIBERS_DB` binding (commented out until subscriptions are enabled), and the `EMAIL_FROM` sender; secrets are set with `npx wrangler secret put`, never in the file. A small integration in `astro.config.mjs` deletes the copy of `.dev.vars` that Cloudflare's Vite plugin writes into `dist/server`. In [astro.config.mjs](./astro.config.mjs), `session: false` and `imageService: "compile"` keep the adapter from adding a KV namespace or a Cloudflare Images binding. The adapter does not support Cloudflare Pages, and the sign-up routes need the Worker, so the site no longer works on a static-only host.
 
 ## Before Launch
 
-- Set `siteConfig.siteUrl` to your domain, build, and confirm a page's canonical tag shows it.
-- Check `siteConfig.author.name`, and add your email and profiles in `src/config/site.ts` if you want them shown.
+- `siteConfig.siteUrl` is `https://diaryfromtheroad.com`. Connect the domain (README.md, Connecting diaryfromtheroad.com), then confirm a page's canonical tag and `/robots.txt` on it.
+- Check `siteConfig.author.name`, and add your email to `siteConfig.email` in `src/config/site.ts` if you want it on the Contact page and in the footer.
 - Add your posts to `src/content/blog`; see its README.
 - Replace the tags in `src/config/taxonomy.ts` with the ones you publish under.
-- Write the About page, and decide on the contact form: set its endpoint and send a test, or remove it.
-- Replace `public/favicon.svg`, and, if you like, `public/og-image.png` with a photograph of your own.
+- Write the About page.
+- Replace `public/favicon.svg` (a stand-in monogram), and, if you like, `public/og-image.png` with a photograph of your own.
+- Before opening email sign-up, follow [Setting up production](./SUBSCRIPTIONS.md#setting-up-production): the D1 database ID in `wrangler.jsonc`, Turnstile, a verified sending domain in Resend, `EMAIL_FROM`, and the two secrets. Then set `subscriptions.enabled` to `true`, and check that the privacy notice still matches.

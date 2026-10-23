@@ -5,8 +5,11 @@ import { siteConfig } from "@/config/site";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { withBreadcrumbs } from "@/lib/schema";
 
-const endpoint = siteConfig.forms.contact;
 const crumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
+/* Instagram comes from `socials` in src/config/site.ts; the handle is its profile URL's path. */
+const instagram = siteConfig.socials.find((social) => social.icon === "instagram");
+const handle = instagram && new URL(instagram.href).pathname.split("/").filter(Boolean)[0];
+const elsewhere = siteConfig.socials.filter((social) => social !== instagram);
 ---
 
 <BaseLayout
@@ -14,72 +17,24 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
   description={`Get in touch with ${siteConfig.name}.`}
   structuredData={withBreadcrumbs({ "@type": "ContactPage", name: "Contact" }, crumbs)}
 >
-  <PageHeader title="Say hello." crumbs={crumbs} />
+  <PageHeader
+    title="Say hello."
+    lead={instagram ? "You can reach me on Instagram." : undefined}
+    crumbs={crumbs}
+  />
 
-  <div class="shell grid gap-14 lg:grid-cols-[minmax(0,1.5fr)_1fr] lg:gap-24">
-    <form
-      class="grid gap-6 rounded-panel border border-line bg-surface p-6 sm:grid-cols-2 sm:p-10"
-      method="post"
-      action={endpoint || undefined}
-      data-demo-form={endpoint ? undefined : ""}
-      data-needs-js={endpoint ? undefined : ""}
-      data-success="Thanks, your note is on its way (demo mode: set an endpoint in src/config/site.ts to receive messages)."
-    >
-      <div>
-        <label for="contact-name" class="label">
-          Name
-        </label>
-        <input id="contact-name" name="name" autocomplete="name" required class="field" />
-      </div>
-      <div>
-        <label for="contact-email" class="label">
-          Email
-        </label>
-        <input
-          id="contact-email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          required
-          class="field"
-        />
-      </div>
-      <div class="sm:col-span-2">
-        <label for="contact-topic" class="label">
-          Topic
-        </label>
-        <div class="relative">
-          <select id="contact-topic" name="topic" class="field appearance-none pr-10">
-            <option>A note or a question</option>
-            <option>A correction</option>
-          </select>
-          <Icon
-            name="chevron-down"
-            class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted"
-          />
-        </div>
-      </div>
-      <div class="sm:col-span-2">
-        <label for="contact-message" class="label">
-          Message
-        </label>
-        <textarea
-          id="contact-message"
-          name="message"
-          rows="6"
-          required
-          class="field resize-y"
-        ></textarea>
-      </div>
-      <div class="flex flex-col gap-4 sm:col-span-2 sm:flex-row sm:items-center">
-        <button type="submit" class="btn btn-primary">
-          Send message
-        </button>
-        <p class="text-sm text-muted" data-form-status role="status"></p>
-      </div>
-    </form>
+  <div class="shell">
+    {instagram && (
+      <a href={instagram.href} class="group inline-flex items-center gap-4">
+        <Icon name="social-instagram" class="size-8 shrink-0" />
+        <span class="serif text-section font-normal">
+          <span class="card-title">@{handle}</span>
+          <span class="sr-only"> on Instagram</span>
+        </span>
+      </a>
+    )}
 
-    <aside class="space-y-10">
+    <div class:list={["space-y-10", instagram && "mt-16"]}>
       {siteConfig.email && (
         <div>
           <h2 class="serif text-2xl">Email</h2>
@@ -95,7 +50,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
       <div>
         <h2 class="serif text-2xl">Elsewhere</h2>
         <ul class="mt-3 flex flex-wrap gap-2">
-          {siteConfig.socials.map((social) => (
+          {elsewhere.map((social) => (
             <li>
               <a href={social.href} class="chip">
                 <Icon name={`social-${social.icon}`} class="size-3.5" />
@@ -111,10 +66,6 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Contact" }];
           </li>
         </ul>
       </div>
-    </aside>
+    </div>
   </div>
 </BaseLayout>
-
-<script>
-  import "@/scripts/forms";
-</script>

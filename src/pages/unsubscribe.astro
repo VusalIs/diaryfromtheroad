@@ -1,0 +1,78 @@
+---
+import PageHeader from "@/components/ui/PageHeader.astro";
+import { siteConfig } from "@/config/site";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { isToken, readForm, unsubscribe } from "@/lib/subscriptions";
+import { getSubscribersDb } from "@/lib/subscriptions-env";
+
+/* Rendered on request. Opening the link shows a button, so mail scanners can't unsubscribe anyone.
+   A POST to the link itself also works, which is what one-click unsubscribe in mail apps sends. */
+export const prerender = false;
+
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+
+const db = getSubscribersDb();
+let token = Astro.url.searchParams.get("token") ?? "";
+let state: "ask" | "unsubscribed" | "invalid" | "closed" | "error" = !db
+  ? "closed"
+  : isToken(token)
+    ? "ask"
+    : "invalid";
+
+if (db && Astro.request.method === "POST") {
+  const form = await readForm(Astro.request);
+  token = form?.get("token") ?? token;
+  try {
+    state = await unsubscribe(token, { db });
+  } catch {
+    state = "error";
+  }
+}
+
+const copy = {
+  ask: {
+    title: "Unsubscribe?",
+    lead: `You'll stop getting emails about new posts on ${siteConfig.name}.`,
+  },
+  unsubscribed: {
+    title: "You're unsubscribed.",
+    lead: "You won't get any more emails from me. You can sign up again at the end of any post.",
+  },
+  invalid: {
+    title: "This link doesn't work.",
+    lead: "Check that you opened the whole link from the email. If the emails keep coming, contact me and I'll remove your address.",
+  },
+  closed: {
+    title: "Unsubscribing isn't available right now.",
+    lead: "Contact me and I'll remove your address.",
+  },
+  error: {
+    title: "Something went wrong.",
+    lead: "You're not unsubscribed yet. Please open the link again later, or contact me.",
+  },
+}[state];
+Astro.response.status = { ask: 200, unsubscribed: 200, invalid: 400, closed: 503, error: 500 }[
+  state
+];
+---
+
+<BaseLayout title="Unsubscribe" description={copy.lead} noindex>
+  <PageHeader title={copy.title} lead={copy.lead}>
+    {state === "ask" && (
+      <form method="post" class="rise mt-10" style="--rise-order: 3">
+        <input type="hidden" name="token" value={token} />
+        <button type="submit" class="btn btn-primary">
+          Unsubscribe
+        </button>
+      </form>
+    )}
+    {(state === "invalid" || state === "closed" || state === "error") && (
+      <p class="rise mt-10" style="--rise-order: 3">
+        <a href="/contact/" class="text-link">
+          Contact me
+        </a>
+      </p>
+    )}
+  </PageHeader>
+</BaseLayout>

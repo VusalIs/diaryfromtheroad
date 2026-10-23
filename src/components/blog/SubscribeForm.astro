@@ -1,0 +1,226 @@
+---
+/* Sign-up for new-post emails, at the end of each article (see SUBSCRIPTIONS.md). Hidden without
+   JavaScript, which the spam check needs. */
+interface Props {
+  /** The Turnstile site key. */
+  siteKey: string;
+}
+
+const { siteKey } = Astro.props;
+---
+
+<section class="mt-10 border-t border-line pt-8" aria-labelledby="subscribe-title" data-needs-js>
+  <h2 id="subscribe-title" class="serif text-2xl">
+    Get new posts by email
+  </h2>
+  <p class="mt-2 text-muted">
+    One email when I publish a new post, and nothing else. Prefer a feed reader?{" "}
+    <a href="/rss.xml" class="text-link">
+      Follow the RSS feed
+    </a>
+    .
+  </p>
+  <form
+    class="mt-6"
+    method="post"
+    action="/api/subscribe/"
+    novalidate
+    data-subscribe
+    data-sitekey={siteKey}
+  >
+    <label for="subscribe-email" class="label">
+      Email address
+    </label>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <input
+        id="subscribe-email"
+        name="email"
+        type="email"
+        class="field aria-[invalid=true]:border-accent"
+        autocomplete="email"
+        maxlength="254"
+        spellcheck="false"
+        required
+        aria-describedby="subscribe-error subscribe-consent"
+      />
+      <button
+        type="submit"
+        class="btn btn-primary min-h-12 shrink-0 aria-disabled:cursor-progress aria-disabled:opacity-70"
+      >
+        Subscribe
+      </button>
+    </div>
+    <p id="subscribe-error" class="mt-2 text-sm text-accent" hidden data-subscribe-error></p>
+    <div data-subscribe-widget></div>
+    <p id="subscribe-consent" class="mt-3 text-sm text-muted">
+      I'll keep your address only to email you about new posts. You'll get an email to confirm it
+      first, and every email has a link to unsubscribe.{" "}
+      <a href="/privacy/" class="text-link">
+        How your address is kept
+      </a>
+      .
+    </p>
+    <p class="mt-4 text-sm data-[state=error]:text-accent" role="status" data-subscribe-status></p>
+  </form>
+</section>
+
+<script>
+  interface Turnstile {
+    render(container: HTMLElement, options: Record<string, unknown>): string | undefined;
+    execute(widget: string): void;
+    reset(widget: string): void;
+  }
+
+  const messages = {
+    sending: "Subscribing…",
+    missing: "Enter your email address.",
+    invalid: "Enter a valid email address.",
+    check:
+      "The spam check couldn't run. If something blocks challenges.cloudflare.com, allow it and try again, or follow the RSS feed instead.",
+    offline: "The sign-up couldn't be sent. Check your connection and try again.",
+    error: "Something went wrong. Please try again later.",
+  };
+
+  let loading: Promise<Turnstile> | undefined;
+
+  /* Cloudflare's Turnstile script loads on first use, not with the page. */
+  function loadTurnstile(): Promise<Turnstile> {
+    loading ??= new Promise<Turnstile>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.addEventListener("load", () => {
+        const turnstile = (window as Window & { turnstile?: Turnstile }).turnstile;
+        if (turnstile) resolve(turnstile);
+        else reject(new Error("Turnstile did not start"));
+      });
+      script.addEventListener("error", () => {
+        script.remove();
+        loading = undefined;
+        reject(new Error("Turnstile did not load"));
+      });
+      document.head.append(script);
+    });
+    return loading;
+  }
+
+  document.querySelectorAll<HTMLFormElement>("form[data-subscribe]").forEach((form) => {
+    const input = form.querySelector<HTMLInputElement>("input[name=email]");
+    const button = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    const error = form.querySelector<HTMLElement>("[data-subscribe-error]");
+    const status = form.querySelector<HTMLElement>("[data-subscribe-status]");
+    const container = form.querySelector<HTMLElement>("[data-subscribe-widget]");
+    if (!input || !button || !error || !status || !container) return;
+
+    let turnstile: Turnstile | undefined;
+    let widget: string | undefined;
+    let pending: { resolve: (token: string) => void; reject: (reason: Error) => void } | undefined;
+    let busy = false;
+
+    const setError = (message: string) => {
+      error.textContent = message;
+      error.hidden = !message;
+      if (message) input.setAttribute("aria-invalid", "true");
+      else input.removeAttribute("aria-invalid");
+    };
+
+    const setStatus = (message: string, state: "busy" | "success" | "error" | "" = "") => {
+      status.textContent = message;
+      status.dataset.state = state;
+    };
+
+    const setBusy = (on: boolean) => {
+      busy = on;
+      form.setAttribute("aria-busy", String(on));
+      if (on) button.setAttribute("aria-disabled", "true");
+      else button.removeAttribute("aria-disabled");
+    };
+
+    /* A fresh, single-use token for each submission. The widget stays invisible unless
+       Cloudflare asks the reader to click it. */
+    const getToken = async () => {
+      turnstile ??= await loadTurnstile();
+      widget ??= turnstile.render(container, {
+        sitekey: form.dataset.sitekey,
+        action: "subscribe",
+        execution: "execute",
+        appearance: "interaction-only",
+        size: "flexible",
+        theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
+        callback: (token: string) => pending?.resolve(token),
+        "error-callback": () => {
+          pending?.reject(new Error("Turnstile error"));
+          return true;
+        },
+        "timeout-callback": () => pending?.reject(new Error("Turnstile timeout")),
+      });
+      if (!widget) throw new Error("Turnstile did not render");
+      const id = widget;
+      const api = turnstile;
+      return new Promise<string>((resolve, reject) => {
+        pending = { resolve, reject };
+        api.execute(id);
+      });
+    };
+
+    input.addEventListener("focus", () => void loadTurnstile().catch(() => {}), { once: true });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (busy) return;
+      setError("");
+      setStatus("");
+      if (!input.checkValidity()) {
+        setError(input.validity.valueMissing ? messages.missing : messages.invalid);
+        input.focus();
+        return;
+      }
+
+      setBusy(true);
+      setStatus(messages.sending, "busy");
+      try {
+        let token: string;
+        try {
+          token = await getToken();
+        } catch {
+          setStatus(messages.check, "error");
+          return;
+        }
+
+        let response: Response;
+        try {
+          response = await fetch(form.action, {
+            method: "POST",
+            body: new URLSearchParams({ email: input.value, "cf-turnstile-response": token }),
+          });
+        } catch {
+          setStatus(messages.offline, "error");
+          return;
+        }
+
+        const result: unknown = await response.json().catch(() => undefined);
+        const { ok, message, field } = (
+          typeof result === "object" && result !== null ? result : {}
+        ) as {
+          ok?: unknown;
+          message?: unknown;
+          field?: unknown;
+        };
+        const text = typeof message === "string" ? message : messages.error;
+        if (response.ok && ok === true) {
+          form.reset();
+          setStatus(text, "success");
+        } else if (field === "email") {
+          setStatus("");
+          setError(text);
+          input.focus();
+        } else {
+          setStatus(text, "error");
+        }
+      } finally {
+        setBusy(false);
+        if (turnstile && widget) turnstile.reset(widget);
+      }
+    });
+  });
+</script>

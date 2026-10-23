@@ -1,0 +1,74 @@
+---
+import PageHeader from "@/components/ui/PageHeader.astro";
+import { siteConfig } from "@/config/site";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBreadcrumbs } from "@/lib/schema";
+
+const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
+---
+
+<BaseLayout
+  title="Privacy"
+  description={`What ${siteConfig.name} stores when you subscribe to new posts by email, why, and how to unsubscribe.`}
+  structuredData={withBreadcrumbs({ "@type": "WebPage", name: "Privacy" }, crumbs)}
+>
+  <PageHeader
+    title="Privacy."
+    lead="What happens to your email address if you subscribe to new posts, and how to take it back."
+    crumbs={crumbs}
+  />
+
+  <div class="shell">
+    <div class="prose-article max-w-[37rem]">
+      <h2>What is stored</h2>
+      <p>When you sign up at the end of a post, the subscriber list keeps:</p>
+      <ul>
+        <li>your email address;</li>
+        <li>
+          whether you are waiting to confirm, subscribed, or unsubscribed, and when each of those
+          happened;
+        </li>
+        <li>
+          two random codes for the links in your emails: one to confirm, stored only in scrambled
+          (hashed) form, and one to unsubscribe.
+        </li>
+      </ul>
+      <p>Nothing else is stored with it: no name, no IP address, and no record of what you read.</p>
+
+      <h2>Why</h2>
+      <p>Only to email you when I publish a new post. The address isn't used for anything else.</p>
+
+      <h2>Confirming</h2>
+      <p>
+        You are only subscribed once you open the link in the confirmation email and press Confirm.
+        The link works for 48 hours. If you don't confirm, nothing more is sent unless the address
+        is entered in the form again. Unconfirmed addresses are deleted automatically after their
+        link expires, at the next sign-up by anyone.
+      </p>
+
+      <h2>Who handles it</h2>
+      <p>
+        The list is kept by {siteConfig.author.name}, who writes this journal. Two services handle
+        it:
+      </p>
+      <ul>
+        <li>
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> hosts the site and
+          stores the list. Its Turnstile check, which runs when you use the form, looks at your IP
+          address and browser to tell people from bots.
+        </li>
+        <li>
+          <a href="https://resend.com/legal/privacy-policy">Resend</a> delivers the emails.
+        </li>
+      </ul>
+
+      <h2>Unsubscribing</h2>
+      <p>
+        Every email includes a link to unsubscribe. Open it and press Unsubscribe, and no more
+        emails are sent. Your address then stays on the list marked as unsubscribed, so it isn't
+        emailed again by mistake. To have it deleted completely, or to ask about your data,{" "}
+        <a href="/contact/">contact me</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
