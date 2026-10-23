@@ -126,18 +126,19 @@
 }
 
 :root.dark {
-  --canvas: #07141d;
-  --surface: #0d1d28;
-  --sunken: #11232f;
-  --line: #1b2f3c;
-  --line-strong: #2a4251;
-  --ink: #e8f0f4;
-  --body: #bccbd4;
-  --muted: #8ea3b0;
-  --accent: #8fc0d4;
-  --accent-soft: #13303f;
-  --inverse: #e8f0f4;
-  --on-inverse: #07141d;
+  --canvas: #242720;
+  --surface: #30342b;
+  --sunken: #373b31;
+  --line: #44473d;
+  --line-strong: #55594b;
+  --ink: #e9e1d2;
+  --body: #d3ccbd;
+  --muted: #b9b7a9;
+  /* Olive (#a5aa7b) lifted slightly so accent text stays 4.5:1 on --accent-soft. */
+  --accent: #adb283;
+  --accent-soft: #3f4334;
+  --inverse: #e9e1d2;
+  --on-inverse: #242720;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -20px rgb(0 0 0 / 0.7);
   --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.5), 0 24px 60px -18px rgb(0 0 0 / 0.8);
   color-scheme: dark;
@@ -954,4 +955,9 @@
 
 .astro-code {
   background-color: var(--surface) !important;
+}
+
+/* At night code sits on the canvas, the ground where the dark theme's comments stay legible. */
+.dark .astro-code {
+  background-color: var(--canvas) !important;
 }
