@@ -5,26 +5,15 @@ import { categoryUrl, plural } from "@/lib/posts";
 
 interface Props {
   counts: Record<string, number>;
-  /** A visible heading for the list, as on the homepage. */
-  title?: string;
 }
 
-const { counts, title } = Astro.props;
+const { counts } = Astro.props;
 const sections = categories.filter((category) => counts[category.slug]);
 ---
 
 {sections.length > 0 && (
-  <section
-    class="shell"
-    aria-label={title ? undefined : "Topics"}
-    aria-labelledby={title ? "topics-title" : undefined}
-  >
-    {title && (
-      <h2 id="topics-title" class="serif text-section font-normal">
-        {title}
-      </h2>
-    )}
-    <ul class:list={["border-b border-line", title && "mt-10"]}>
+  <section class="shell" aria-label="Topics">
+    <ul class="border-b border-line">
       {sections.map((category) => (
         <li class="border-t border-line">
           <a href={categoryUrl(category.slug)} class="group flex items-center gap-6 py-7">

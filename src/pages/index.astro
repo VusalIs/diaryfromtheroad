@@ -1,24 +1,21 @@
 ---
+import AppList from "@/components/home/AppList.astro";
 import Hero from "@/components/home/Hero.astro";
 import LatestPosts from "@/components/home/LatestPosts.astro";
 import LeadStory from "@/components/home/LeadStory.astro";
-import SectionIndex from "@/components/home/SectionIndex.astro";
-import { homeConfig } from "@/config/home";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { countBy, getLeadPost, getPosts } from "@/lib/posts";
+import { getApps } from "@/lib/apps";
+import { getLeadPost, getPosts } from "@/lib/posts";
 
 const posts = await getPosts();
 const lead = await getLeadPost();
 const rest = posts.filter((post) => post.slug !== lead?.slug);
+const apps = await getApps();
 ---
 
 <BaseLayout>
   <Hero />
   {lead && <LeadStory post={lead} />}
   {rest.length > 0 && <LatestPosts posts={rest} />}
-  {posts.length > 0 && (
-    <div class="mt-28 sm:mt-36">
-      <SectionIndex counts={countBy(posts, "category")} title={homeConfig.topics.title} />
-    </div>
-  )}
+  {apps.length > 0 && <AppList apps={apps} />}
 </BaseLayout>

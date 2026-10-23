@@ -1,0 +1,33 @@
+---
+import AppEntry from "@/components/apps/AppEntry.astro";
+import Lightbox from "@/components/blog/Lightbox.astro";
+import PageHeader from "@/components/ui/PageHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getApps } from "@/lib/apps";
+import { withBreadcrumbs } from "@/lib/schema";
+
+const apps = await getApps();
+const crumbs = [{ label: "Home", href: "/" }, { label: "Apps" }];
+---
+
+<BaseLayout
+  title="Apps"
+  description="The software apps and products I build."
+  structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Apps" }, crumbs)}
+>
+  <PageHeader
+    title="Apps"
+    lead={apps.length ? "The software apps and products I build." : "No apps listed yet."}
+    crumbs={crumbs}
+  />
+  {apps.length > 0 && (
+    <div class="shell">
+      <div class="border-b border-line">
+        {apps.map((app) => (
+          <AppEntry app={app} />
+        ))}
+      </div>
+    </div>
+  )}
+  {apps.some((app) => app.data.screenshots.length > 0) && <Lightbox />}
+</BaseLayout>

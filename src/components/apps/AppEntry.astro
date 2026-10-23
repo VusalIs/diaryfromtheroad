@@ -1,0 +1,105 @@
+---
+import { Image } from "astro:assets";
+import { render } from "astro:content";
+import Icon from "@/components/ui/Icon.astro";
+import type { App } from "@/lib/apps";
+import { lightboxRendition } from "@/lib/images";
+
+interface Props {
+  app: App;
+}
+
+const { app } = Astro.props;
+const { name, summary, logo, appStore, links, status, platforms, screenshots } = app.data;
+const { Content } = await render(app);
+const hasBody = Boolean(app.body?.trim());
+const labels = [status, ...platforms].filter(Boolean);
+/* Screenshots open in the page's lightbox, like pictures in a post. */
+const shots = await Promise.all(
+  screenshots.map(async (shot) => ({ ...shot, full: await lightboxRendition(shot.src) })),
+);
+---
+
+<article
+  id={app.id}
+  class="grid gap-10 border-t border-line py-14 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16"
+  aria-labelledby={`${app.id}-name`}
+>
+  <div>
+    <div class="flex items-center gap-4">
+      {logo && (
+        <Image
+          src={logo}
+          alt=""
+          width={64}
+          height={64}
+          densities={[1, 2]}
+          class="size-16 shrink-0 rounded-[22%] border border-line object-cover"
+        />
+      )}
+      <div class="min-w-0">
+        <h2 id={`${app.id}-name`} class="serif text-section font-normal">
+          {name}
+        </h2>
+        {labels.length > 0 && (
+          <p class="meta mt-1.5">
+            {labels.map((label) => (
+              <span>{label}</span>
+            ))}
+          </p>
+        )}
+      </div>
+    </div>
+    <p class="serif mt-6 max-w-xl text-lead text-body">{summary}</p>
+    {hasBody && (
+      <div class="prose-article mt-6">
+        <Content />
+      </div>
+    )}
+    {(appStore || links.length > 0) && (
+      <div class="mt-8 flex flex-wrap gap-3">
+        {appStore && (
+          <a href={appStore} class="btn btn-primary group">
+            View on the App Store
+            <Icon
+              name="arrow-right"
+              class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+            />
+          </a>
+        )}
+        {links.map((link) => (
+          <a href={link.url} class="btn btn-quiet">
+            {link.label}
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+
+  {shots.length > 0 && (
+    <ul class="flex gap-3 sm:gap-4 lg:justify-end" aria-label={`${name} screenshots`}>
+      {shots.map((shot) => (
+        <li class="min-w-0 max-w-56 flex-1">
+          <button
+            type="button"
+            class="figure-frame"
+            data-lightbox
+            data-lightbox-src={shot.full.src}
+            data-lightbox-srcset={shot.full.srcSet.attribute}
+            data-lightbox-alt={shot.alt}
+            data-lightbox-caption={`${name}: ${shot.alt}`}
+            aria-label={`Enlarge screenshot: ${shot.alt}`}
+          >
+            <Image
+              src={shot.src}
+              alt={shot.alt}
+              widths={[240, 360, 480, 720]}
+              sizes="(min-width: 40rem) 14rem, 45vw"
+              quality={80}
+            />
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
+</article>

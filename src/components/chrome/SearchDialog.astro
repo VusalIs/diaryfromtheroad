@@ -487,8 +487,8 @@ import Icon from "@/components/ui/Icon.astro";
 
     const archiveRow = (query: string) => {
       const text = el("span", "search-archive");
-      if (query) text.append("Search the archive for ", el("span", "search-query", `“${query}”`));
-      else text.append("Browse the archive");
+      if (query) text.append("Search the journal for ", el("span", "search-query", `“${query}”`));
+      else text.append("Browse the journal");
       const href = query ? `/blog/?q=${encodeURIComponent(query)}` : "/blog/";
       return row(href, [text], "search-option-archive");
     };
@@ -520,7 +520,7 @@ import Icon from "@/components/ui/Icon.astro";
 
       if (!entries) {
         if (failed) {
-          note = "Search couldn’t load just now. The archive has its own search.";
+          note = "Search couldn’t load just now. The journal has its own search.";
           rows.push(archiveRow(query));
           spoken = "Search is unavailable";
         } else {

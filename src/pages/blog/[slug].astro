@@ -37,8 +37,11 @@ interface Props {
 const { post } = Astro.props;
 const { Content, headings } = await render(post.entry);
 const category = getCategory(post.category);
-const related = await getRelatedPosts(post);
 const { newer, older } = await getAdjacentPosts(post);
+/* Previous and Next already offer the neighbouring posts, so Keep reading skips them. */
+const related = (await getRelatedPosts(post, 5))
+  .filter((item) => item.slug !== newer?.slug && item.slug !== older?.slug)
+  .slice(0, 3);
 const url = absolute(postUrl(post));
 const card = await getImage({
   src: post.thumbnail,

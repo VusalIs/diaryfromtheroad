@@ -1,18 +1,12 @@
 ---
 import Icon from "@/components/ui/Icon.astro";
 import { footerLinks, siteConfig } from "@/config/site";
-import { categories } from "@/config/taxonomy";
-import { categoryUrl, getPosts } from "@/lib/posts";
 
 const year = new Date().getFullYear();
-const posts = await getPosts();
-const sections = categories.filter((category) =>
-  posts.some((post) => post.category === category.slug),
-);
 ---
 
 <footer class="mt-24 border-t border-line sm:mt-32">
-  <div class="shell grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
+  <div class="shell flex flex-col gap-8 py-16 md:flex-row md:items-baseline md:justify-between md:gap-12">
     <div class="max-w-sm">
       <a href="/" class="serif rounded-lg text-[1.5rem] font-medium tracking-[-0.01em]">
         {siteConfig.name}
@@ -42,28 +36,9 @@ const sections = categories.filter((category) =>
       )}
     </div>
 
-    {sections.length > 0 && (
-      <nav aria-labelledby="footer-topics">
-        <h2 id="footer-topics" class="text-sm font-medium">
-          Topics
-        </h2>
-        <ul class="mt-4 space-y-2.5">
-          {sections.map((category) => (
-            <li>
-              <a href={categoryUrl(category.slug)} class="footer-link">
-                {category.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    )}
-
-    <nav aria-labelledby="footer-journal">
-      <h2 id="footer-journal" class="text-sm font-medium">
-        The journal
-      </h2>
-      <ul class="mt-4 space-y-2.5">
+    {/* Only what the header doesn't already offer, in one row on the name's line. */}
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap gap-x-6 gap-y-2">
         {footerLinks.map((link) => (
           <li>
             <a href={link.href} class="footer-link">

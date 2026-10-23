@@ -39,13 +39,6 @@ const isCurrent = (href: string) => path === href || path.startsWith(href);
         <kbd data-needs-js>/</kbd>
       </a>
       <ThemeToggle />
-      <a
-        href="/rss.xml"
-        class="ml-1 hidden min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.9375rem] text-muted transition-colors hover:text-ink sm:inline-flex"
-      >
-        <Icon name="rss" class="size-4" />
-        RSS
-      </a>
       <button
         type="button"
         class="icon-btn md:hidden"
@@ -76,10 +69,6 @@ const isCurrent = (href: string) => path === href || path.startsWith(href);
           </li>
         ))}
       </ul>
-      <a href="/rss.xml" class="mt-6 inline-flex min-h-11 items-center gap-2 font-medium">
-        <Icon name="rss" class="size-4" />
-        RSS feed
-      </a>
     </nav>
   </div>
 </header>

@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import heroImage from "@/assets/hero-road.jpg";
 import Icon from "@/components/ui/Icon.astro";
 import { homeConfig } from "@/config/home";
 import { siteConfig } from "@/config/site";
@@ -6,20 +8,37 @@ import { siteConfig } from "@/config/site";
 const { hero } = homeConfig;
 ---
 
-<section class="shell flex flex-col items-center pt-12 text-center sm:pt-16 lg:pt-20">
-  <h1 class="serif rise max-w-5xl text-display font-light">{siteConfig.name}</h1>
-  <p class="serif rise mt-6 max-w-xl text-lead text-body" style="--rise-order: 1">
-    {hero.lead}
-  </p>
-  <a
-    href={hero.link.href}
-    class="rise group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium"
-    style="--rise-order: 2"
-  >
-    {hero.link.label}
-    <Icon
-      name="arrow-right"
-      class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+<section class="shell grid items-center gap-10 pt-12 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-16 lg:pt-20">
+  <div>
+    <h1 class="serif rise text-display font-light">{siteConfig.name}</h1>
+    <p class="serif rise mt-6 max-w-xl text-lead text-body" style="--rise-order: 1">
+      {hero.lead}
+    </p>
+    <a
+      href={hero.link.href}
+      class="rise group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium"
+      style="--rise-order: 2"
+    >
+      {hero.link.label}
+      <Icon
+        name="arrow-right"
+        class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+      />
+    </a>
+  </div>
+
+  {/* The page's largest image: loaded eagerly, never animated in. Phones show the whole frame;
+      wider crops are anchored on the motorbike and the bend in the road. */}
+  <div class="media aspect-[3/2] sm:aspect-[16/9] lg:aspect-[4/3]">
+    <Image
+      src={heroImage}
+      alt="A motorbike rounding a bend on a winding hillside road in Da Nang, Vietnam, seen from above through green leaves."
+      widths={[480, 720, 960, 1280, 1600, 2000]}
+      sizes="(min-width: 81rem) 40rem, (min-width: 64rem) 48vw, 92vw"
+      quality={76}
+      loading="eager"
+      fetchpriority="high"
+      class="object-[55%_30%]"
     />
-  </a>
+  </div>
 </section>

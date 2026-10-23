@@ -26,7 +26,7 @@ Set `siteConfig.siteUrl` before building for production. Canonical URLs, social 
 
 Each social link takes a `label`, an `href`, and an `icon`, which is a file name from [src/icons/bootstrap](./src/icons/bootstrap) such as `twitter-x`, `bluesky`, `github`, `mastodon`, `instagram`, or `threads`.
 
-`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. `footerLinks` is the footer's "The journal" column; the footer's Topics column comes from [src/config/taxonomy.ts](./src/config/taxonomy.ts). The header's RSS link, and the RSS feed link in the mobile menu, point to `/rss.xml`.
+`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. The header holds only Journal, Apps, and About, plus search and the theme toggle; the wordmark links home. Topics have no header link: readers reach them from the Journal's "Browse by topic" link and Topic menu, each card's topic label, and the article breadcrumbs. `footerLinks` is the footer's single row of links, beside the wordmark, and holds only what the header doesn't: the RSS feed. Tags, the Tags page, and the Contact page are not linked from the header or footer; tags are reached from articles and the Journal's filter.
 
 The header and footer show `name` as a serif wordmark. The favicon is [public/favicon.svg](./public/favicon.svg), which has the accent color written into it. The footer's copyright line and type credit are in [src/components/chrome/SiteFooter.astro](./src/components/chrome/SiteFooter.astro).
 
@@ -65,9 +65,9 @@ export const tags = [
 ```
 
 - A post's `category` and `tags` are validated against these slugs with `z.enum`, so a typo fails the build. Add a topic or tag to the config before using it in a post.
-- Topic and tag pages are only generated for terms with at least one published post, and the archive menus, the footer, the homepage filter and topic list, and the Topics page skip empty terms too, so no link leads to an empty page.
+- Topic and tag pages are only generated for terms with at least one published post, and the Journal's menus and the Topics page skip empty terms too, so no link leads to an empty page.
 - Order in `categories` is the order everywhere topics are listed. Tags keep their order in the archive menu; the Tags page sorts them by post count.
-- A topic's `description` is the lead on its page, its line in the homepage and Topics page lists, and part of its meta description.
+- A topic's `description` is the lead on its page, its line on the Topics page, and part of its meta description.
 
 To rename a slug, change it in the config and in every post that uses it; `npm run check` lists any post you missed.
 
@@ -128,40 +128,48 @@ Start the body's headings at `##`; the title is the page's only `h1`.
 
 The homepage is assembled in [src/pages/index.astro](./src/pages/index.astro) from sections in [src/components/home](./src/components/home), with copy in [src/config/home.ts](./src/config/home.ts):
 
-| Section    | Component            | Config key                   |
-| ---------- | -------------------- | ---------------------------- |
-| Hero       | `Hero.astro`         | `homeConfig.hero`            |
-| Lead post  | `LeadStory.astro`    | the `featured` flag in posts |
-| More posts | `LatestPosts.astro`  | `homeConfig.latest`          |
-| Topics     | `SectionIndex.astro` | `homeConfig.topics`          |
+| Section    | Component           | Config key                   |
+| ---------- | ------------------- | ---------------------------- |
+| Hero       | `Hero.astro`        | `homeConfig.hero`            |
+| Lead post  | `LeadStory.astro`   | the `featured` flag in posts |
+| More posts | `LatestPosts.astro` | `homeConfig.latest`          |
+| Apps       | `AppList.astro`     | `homeConfig.apps`            |
 
-**The hero** is text on the canvas, with no photograph: the site name as the page's `h1`, `hero.lead` under it, and `hero.link`, a link to the journal. It is short, so the lead post starts near the top of the first screen.
+**The hero** pairs the text with a photograph: the site name as the page's `h1`, `hero.lead` under it, and `hero.link`, a link to the journal, beside [src/assets/hero-road.jpg](./src/assets/hero-road.jpg) from `64rem` and above it on narrower screens. The photo is shown whole at 3:2 on phones, cropped to 16:9 on tablets and 4:3 beside the text, with no overlay or filter. It is the page's largest image, so it loads eagerly with high priority. To change it, replace the import, the `alt` text, and the `object-[x_y]` focal point in [src/components/home/Hero.astro](./src/components/home/Hero.astro); use a landscape photo about 2400 pixels wide.
 
 **The lead post** is the newest post with `featured: true`, or the newest post if none is flagged. Flag more than one and the newest flagged post wins; the others appear in the grid.
 
-**More posts** lists every post except the lead. With one or two, the cards share the row in halves and request larger images; with three or more they sit in thirds. `latest.count` sets how many cards show at once. Once there are more posts than that, a topic filter appears above the grid; it works in place, keeps no URL state, and is hidden without JavaScript, when the first `count` posts show.
+**More posts** shows the newest posts after the lead, up to `latest.count`, with a link to the Journal, which lists every post and has the filters. With one or two, the cards share the row in halves and request larger images; with three or more they sit in thirds. Each card's topic label links to its topic page; the full topic directory is the Topics page.
 
-**Topics** lists every topic with a post, with its description and post count, as text links. The Topics page uses the same list.
+**Apps** lists every app in a text row, with its logo, name, summary, and status, each linking to its section of the Apps page; see [Apps](#apps).
 
-Each section appears only when it has something to show: with no posts the homepage is just the hero, and with one post it is the hero and the lead post.
+Each section appears only when it has something to show: with no posts and no apps the homepage is just the hero, and with one post it is the hero and the lead post.
+
+## Apps
+
+The Apps page, [src/pages/apps/index.astro](./src/pages/apps/index.astro), shows every app on one page, each in its own section anchored by its folder name (`/apps/#your-app`). The apps are a content collection in [src/content/apps](./src/content/apps), one folder per app holding an `index.md` with its logo and screenshots beside it; the [README](./src/content/apps/README.md) there has the frontmatter template. The schema is the `apps` collection in [src/content.config.ts](./src/content.config.ts).
+
+Each section, [src/components/apps/AppEntry.astro](./src/components/apps/AppEntry.astro), shows the logo, the name, the `status` and `platforms` as small labels, the `summary`, any text written below the frontmatter, the App Store link as the main button and any other `links` beside it, and up to four screenshots. Screenshots are shown whole, never cropped, and open in the same lightbox as pictures in a post. There is no App Store badge: Apple's badge must be its own artwork, so the link is a plain button.
+
+Apps are listed by `order`, then name, and `draft: true` hides one everywhere. With no apps, the page says so and the homepage leaves its Apps section out.
 
 The header sits transparent at the top of every page and turns solid once the page scrolls. It hides while the reader scrolls down and returns when they scroll up or tab into it.
 
 ## Search
 
-The search palette is [src/components/chrome/SearchDialog.astro](./src/components/chrome/SearchDialog.astro), included on every page by `BaseLayout.astro`. It opens with the search button in the header, `Ctrl/⌘ + K`, or `/` when the cursor is not in a text field. Any element with a `data-search-open` attribute opens it too, like the "Search the archive" button on the 404 page. Without JavaScript the header button is a plain link to the archive.
+The search palette is [src/components/chrome/SearchDialog.astro](./src/components/chrome/SearchDialog.astro), included on every page by `BaseLayout.astro`. It opens with the search button in the header, `Ctrl/⌘ + K`, or `/` when the cursor is not in a text field. Any element with a `data-search-open` attribute opens it too, like the "Search the journal" button on the 404 page. Without JavaScript the header button is a plain link to the Journal.
 
 - The index is `/search-index.json`, built from [src/pages/search-index.json.ts](./src/pages/search-index.json.ts). It holds each published post's title, excerpt, topic, tags, and date, not the full text, so it stays small. It is fetched the first time the palette opens, or as soon as a reader hovers or focuses a search button.
 - Before the first keystroke the palette lists the five most recent posts.
 - Every word in the query must match somewhere. A word in the title scores 8, in the topic or tags 4, and in the excerpt 1; the whole query in the title adds 4. Ties go to the newer post, and the top eight are shown. Matching ignores case and accents.
-- The last row, "Search the archive for …", opens the archive with the query filled in.
+- The last row, "Search the journal for …", opens the Journal with the query filled in.
 - Arrow keys move through the results, `Enter` opens one, and `Escape` or a click on the backdrop closes the palette and returns focus to whatever opened it.
 
 `MAX_RESULTS` and `RECENT_COUNT` at the top of the palette's script set the number of results and recent posts. To index another field, add it to `SearchEntry` in `search-index.json.ts` and to the `search` function in the palette.
 
 ## The Archive
 
-[src/pages/blog/index.astro](./src/pages/blog/index.astro) renders every published post as a grid of cards, newest first, then filters it in the browser. Three controls combine in the toolbar above the grid: a search field, a **Topic** menu, and a **Tag** menu.
+[src/pages/blog/index.astro](./src/pages/blog/index.astro) renders every published post as a grid of cards, newest first, then filters it in the browser. A "Browse by topic" link under the title leads to the Topics page. Three controls combine in the toolbar above the grid: a search field, a **Topic** menu, and a **Tag** menu.
 
 - The search field filters as you type, matching titles, excerpts, topics, and tags. Every word must appear. The text it matches is the card's `data-search` attribute, built in [src/components/blog/PostCard.astro](./src/components/blog/PostCard.astro).
 - Each menu is a native `<details>` element. One opens at a time, and it closes on a selection, a click outside, or `Escape`, which returns focus to the pill.
@@ -259,7 +267,7 @@ To add an icon, save its SVG from [lucide.dev](https://lucide.dev/) into `src/ic
 
 ## Forms
 
-There is no newsletter: readers follow the journal through the RSS feed, linked from the header, the mobile menu, the footer, and the Contact page.
+There is no newsletter: readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head.
 
 The form on the Contact page posts to `siteConfig.forms.contact`:
 
@@ -286,6 +294,7 @@ Every URL ends with a trailing slash (`trailingSlash: "always"` in `astro.config
 | Topic        | `src/pages/categories/[slug].astro`                                    | `/categories/<slug>/` |
 | Tags         | [src/pages/tags/index.astro](./src/pages/tags/index.astro)             | `/tags/`              |
 | Tag          | `src/pages/tags/[slug].astro`                                          | `/tags/<slug>/`       |
+| Apps         | [src/pages/apps/index.astro](./src/pages/apps/index.astro)             | `/apps/`              |
 | About        | [src/pages/about.astro](./src/pages/about.astro)                       | `/about/`             |
 | Contact      | [src/pages/contact.astro](./src/pages/contact.astro)                   | `/contact/`           |
 | Not found    | [src/pages/404.astro](./src/pages/404.astro)                           | `/404.html`           |

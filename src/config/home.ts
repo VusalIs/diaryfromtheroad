@@ -6,10 +6,11 @@ export const homeConfig = {
   },
   latest: {
     title: "More posts",
-    /** How many posts the grid shows. With more than this, a topic filter appears above it. */
+    /** How many posts the grid shows below the lead post; the Journal lists the rest. */
     count: 6,
   },
-  topics: {
-    title: "Topics",
+  /** One row per app, linking to its section of the Apps page. Hidden until there is an app. */
+  apps: {
+    title: "Apps",
   },
 };

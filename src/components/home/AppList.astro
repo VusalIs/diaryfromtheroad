@@ -1,0 +1,48 @@
+---
+import { Image } from "astro:assets";
+import Icon from "@/components/ui/Icon.astro";
+import { homeConfig } from "@/config/home";
+import { appUrl, type App } from "@/lib/apps";
+
+interface Props {
+  apps: App[];
+}
+
+const { apps } = Astro.props;
+---
+
+<section class="shell mt-28 sm:mt-36" aria-labelledby="apps-title">
+  <h2 id="apps-title" class="serif text-section font-normal">
+    {homeConfig.apps.title}
+  </h2>
+  <ul class="mt-10 border-b border-line">
+    {apps.map((app) => (
+      <li class="border-t border-line">
+        <a href={appUrl(app)} class="group flex items-center gap-5 py-7">
+          {app.data.logo && (
+            <Image
+              src={app.data.logo}
+              alt=""
+              width={48}
+              height={48}
+              densities={[1, 2]}
+              class="size-12 shrink-0 rounded-[22%] border border-line object-cover"
+            />
+          )}
+          <span class="min-w-0 flex-1">
+            <span class="serif block text-[1.75rem] leading-tight tracking-[-0.012em] transition-colors group-hover:text-accent">
+              {app.data.name}
+            </span>
+            <span class="mt-1.5 line-clamp-2 block text-muted">{app.data.summary}</span>
+          </span>
+          {app.data.status && (
+            <span class="hidden shrink-0 text-sm text-muted sm:block">{app.data.status}</span>
+          )}
+          <span class="grid size-10 shrink-0 place-items-center rounded-full border border-line-strong transition-colors duration-300 group-hover:border-ink group-hover:bg-ink group-hover:text-canvas">
+            <Icon name="arrow-right" class="size-4" />
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>

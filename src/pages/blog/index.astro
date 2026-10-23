@@ -40,13 +40,28 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Journal" }];
         : "No posts yet."
     }
     crumbs={crumbs}
-  />
+  >
+    {/* Topics have no header link of their own; the Journal is where readers find them. */}
+    {categoryOptions.length > 0 && (
+      <a
+        href="/categories/"
+        class="rise group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium"
+        style="--rise-order: 3"
+      >
+        Browse by topic
+        <Icon
+          name="arrow-right"
+          class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+        />
+      </a>
+    )}
+  </PageHeader>
 
   <div class="shell" data-archive>
     <div class="flex flex-col gap-3 border-y border-line py-4 lg:flex-row lg:items-center">
       <form role="search" class="relative lg:w-[26rem]" data-archive-search>
         <label for="archive-query" class="sr-only">
-          Search the archive
+          Search the journal
         </label>
         <Icon
           name="search"

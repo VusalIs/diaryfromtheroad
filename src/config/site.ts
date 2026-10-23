@@ -41,19 +41,18 @@ export const siteConfig = {
 
   /** Profiles shown in the footer and on the Contact page, e.g.
    *  `{ label: "GitHub", href: "https://github.com/you", icon: "github" }`. */
-  socials: [] as SocialLink[],
+  socials: [
+    { label: "Instagram", href: "https://www.instagram.com/diaryfromtheroad/", icon: "instagram" },
+    { label: "X", href: "https://x.com/diaryfromroad", icon: "twitter-x" },
+    { label: "Reddit", href: "https://www.reddit.com/user/caspian_drifter_728/", icon: "reddit" },
+  ] satisfies SocialLink[],
 };
 
 export const navigation: NavLink[] = [
   { label: "Journal", href: "/blog/" },
-  { label: "Topics", href: "/categories/" },
+  { label: "Apps", href: "/apps/" },
   { label: "About", href: "/about/" },
 ];
 
-export const footerLinks: NavLink[] = [
-  { label: "Archive", href: "/blog/" },
-  { label: "Tags", href: "/tags/" },
-  { label: "About", href: "/about/" },
-  { label: "Contact", href: "/contact/" },
-  { label: "RSS feed", href: "/rss.xml" },
-];
+/** The footer's links: only what the header navigation doesn't already offer. */
+export const footerLinks: NavLink[] = [{ label: "RSS feed", href: "/rss.xml" }];
