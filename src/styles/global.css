@@ -104,20 +104,21 @@
 }
 
 :root {
-  --canvas: #fbfdfe;
-  --surface: #ffffff;
-  --sunken: #eff4f6;
-  --line: #e0e8ec;
-  --line-strong: #cad7de;
-  --ink: #0b1f2c;
-  --body: #2f4351;
-  --muted: #5a6d79;
-  --accent: #2a6380;
-  --accent-soft: #e2eef3;
-  --inverse: #0b1f2c;
-  --on-inverse: #fbfdfe;
-  --shadow-card: 0 1px 2px rgb(11 31 44 / 0.05), 0 16px 40px -20px rgb(11 31 44 / 0.2);
-  --shadow-pop: 0 1px 2px rgb(11 31 44 / 0.07), 0 24px 60px -18px rgb(11 31 44 / 0.3);
+  --canvas: #e9e1d2;
+  --surface: #f7f4ed;
+  --sunken: #e0d7c5;
+  --line: #d6cbb6;
+  --line-strong: #c9bca4;
+  --ink: #34372d;
+  --body: #43463a;
+  --muted: #5b5e48;
+  /* Terracotta (#b66f4a) deepened to 4.7:1 on the canvas, so it can carry text and focus rings. */
+  --accent: #8f5233;
+  --accent-soft: #f0e2d6;
+  --inverse: #34372d;
+  --on-inverse: #f7f4ed;
+  --shadow-card: 0 1px 2px rgb(52 55 45 / 0.05), 0 16px 40px -20px rgb(52 55 45 / 0.2);
+  --shadow-pop: 0 1px 2px rgb(52 55 45 / 0.07), 0 24px 60px -18px rgb(52 55 45 / 0.3);
   --header-h: 4.5rem;
   --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 2.5rem);
   --measure: 76rem;
