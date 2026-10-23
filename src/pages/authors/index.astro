@@ -32,7 +32,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Contributors" }];
             <span class="card-title">{author.name}</span>
           </h2>
           <p class="mt-1 text-sm text-muted">{author.role}</p>
-          <p class="mt-4 flex-1 leading-relaxed text-body">{author.bio}</p>
+          <p class="serif mt-4 flex-1 text-[1.0625rem] leading-normal text-body">{author.bio}</p>
           <p class="mt-6 text-sm text-muted">{plural(counts[author.slug] ?? 0, "piece")}</p>
         </a>
       </li>

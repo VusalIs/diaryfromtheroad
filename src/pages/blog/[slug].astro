@@ -109,7 +109,7 @@ const schema = withBreadcrumbs(
         <h1 class="serif rise mt-8 max-w-4xl text-headline font-normal" style="--rise-order: 1">
           {post.title}
         </h1>
-        <p class="rise mt-6 max-w-2xl text-lead text-body" style="--rise-order: 2">
+        <p class="serif rise mt-6 max-w-xl text-lead text-body" style="--rise-order: 2">
           {post.excerpt}
         </p>
         <div class="rise mt-9 flex flex-col items-center gap-4" style="--rise-order: 3">
@@ -162,7 +162,7 @@ const schema = withBreadcrumbs(
         />
       </div>
       {post.imageCredit && (
-        <figcaption class="mx-auto mt-4 max-w-2xl text-center text-sm text-muted">
+        <figcaption class="serif mx-auto mt-4 max-w-2xl text-center text-[0.9375rem] leading-[1.45] italic text-muted">
           {post.imageCredit.caption && <span>{post.imageCredit.caption} </span>}
           Photo by{" "}
           <a href={post.imageCredit.authorUrl} class="text-link" rel="noopener noreferrer">
@@ -176,8 +176,8 @@ const schema = withBreadcrumbs(
       )}
     </figure>
 
-    <div class="shell mt-14 grid grid-cols-[minmax(0,1fr)] gap-12 sm:mt-20 xl:grid-cols-[1fr_minmax(0,42rem)_1fr]">
-      <div class="mx-auto w-full min-w-0 max-w-[42rem] xl:col-start-2">
+    <div class="shell mt-14 grid grid-cols-[minmax(0,1fr)] gap-12 sm:mt-20 xl:grid-cols-[1fr_minmax(0,37rem)_1fr]">
+      <div class="mx-auto w-full min-w-0 max-w-[37rem] xl:col-start-2">
         <div class="prose-article" data-prose>
           <Content components={{ Figure }} />
         </div>

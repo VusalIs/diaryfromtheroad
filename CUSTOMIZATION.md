@@ -226,7 +226,7 @@ To add another filter, such as author:
 
 - **The header** has breadcrumbs, the title, the excerpt as a standfirst, the author's portrait, name, and role, the date, the updated date, and the reading time.
 - **The lead image** is the `thumbnail` at 16:9, wider than the text, with the `imageCredit` caption under it.
-- **The reading column** is set in Newsreader, about 42rem wide.
+- **The reading column** is set in Newsreader at 18–20px, 37rem wide, which keeps lines near 70 characters. Pictures break out wider.
 - **On this page** lists the body's `##` and `###` headings in a rail from `80rem`, and highlights the one being read. It appears when a post has at least two headings. Change the filter in [src/components/blog/TableOfContents.astro](./src/components/blog/TableOfContents.astro) to include `####`.
 - **Tags** link to their tag pages.
 - **The share sheet**, [src/components/blog/ShareSheet.astro](./src/components/blog/ShareSheet.astro), is a native `<dialog>` opened by the Share buttons in the byline and at the end of the article, or by any element with `data-share-open`. It lists seven services, with Bluesky, Mastodon, Reddit, and Pinterest behind **More**, and a copy-link field. Every target is a plain link built from the canonical URL, so no third-party script is loaded. Add or reorder entries in `targets` and `extraTargets`. The Share buttons are hidden without JavaScript.
@@ -370,9 +370,9 @@ Shared pieces such as `.shell`, `.serif`, `.btn`, `.chip`, `.meta`, `.media`, `.
 
 Newsreader, Geist, and Geist Mono are self-hosted in [public/fonts](./public/fonts) and declared at the top of `global.css`:
 
-- **Newsreader**, `--font-serif`, sets headlines and the reading column. It is bundled in roman and italic, each split into Latin and Latin Extended files that load only when a page needs them.
-- **Geist**, `--font-sans`, sets the interface.
-- **Geist Mono**, `--font-mono`, sets code and counts.
+- **Newsreader**, `--font-serif`, sets everything written for the reader: headlines, standfirsts, the reading column, excerpts, author bios, and captions (in italic). It is bundled in roman and italic, each split into Latin, Latin Extended, and Vietnamese files that load only when a page needs them.
+- **Geist**, `--font-sans`, sets the interface: navigation, bylines and dates, section labels, buttons, forms, and counts.
+- **Geist Mono**, `--font-mono`, sets code only, so it loads only on pages with code.
 
 All three are variable fonts with `font-display: swap`. Newsreader's Latin roman and Geist are preloaded in `BaseLayout.astro`, since they carry everything above the fold.
 

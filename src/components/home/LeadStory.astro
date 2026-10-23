@@ -41,12 +41,12 @@ const category = getCategory(post.category);
         )}
         <time datetime={isoDate(post.date)}>{formatDate(post.date)}</time>
       </div>
-      <h2 class="serif mt-4 text-[clamp(2rem,1.4rem+2.2vw,3.25rem)] leading-[1.06] font-normal tracking-[-0.02em]">
+      <h2 class="serif mt-4 text-[clamp(2rem,1.4rem+2.2vw,3.25rem)] leading-[1.1] font-normal tracking-[-0.01em]">
         <a href={postUrl(post)} class="card-title after:absolute after:inset-0 after:content-['']">
           {post.title}
         </a>
       </h2>
-      <p class="mt-5 text-lead text-body">{post.excerpt}</p>
+      <p class="serif mt-5 text-lead text-body">{post.excerpt}</p>
       <div class="mt-8 flex flex-wrap items-center justify-between gap-6">
         {author && (
           <div class="flex items-center gap-3">

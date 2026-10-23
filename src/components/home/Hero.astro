@@ -33,7 +33,7 @@ const parts = hero.title.split(/(\*[^*]+\*)/).filter(Boolean);
         part.startsWith("*") ? <em class="italic">{part.slice(1, -1)}</em> : part,
       )}
     </h1>
-    <p class="rise mt-7 max-w-xl text-lead text-body" style="--rise-order: 1">
+    <p class="serif rise mt-7 max-w-xl text-lead text-body" style="--rise-order: 1">
       {hero.lead}
     </p>
     <div

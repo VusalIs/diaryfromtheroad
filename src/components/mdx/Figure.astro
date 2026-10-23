@@ -16,7 +16,7 @@ interface Props {
 const { src, alt, caption, credit, creditUrl, width = "regular" } = Astro.props;
 const full = await lightboxRendition(src);
 const sizes =
-  width === "wide" ? "(min-width: 64rem) 56rem, 92vw" : "(min-width: 48rem) 42rem, 92vw";
+  width === "wide" ? "(min-width: 64rem) 56rem, 92vw" : "(min-width: 48rem) 37rem, 92vw";
 ---
 
 <figure class:list={["figure", width === "wide" && "figure-wide"]}>

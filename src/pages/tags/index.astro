@@ -30,7 +30,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Tags" }];
           <a href={tagUrl(tag.slug)} class="chip min-h-11 px-5 text-[0.9375rem]">
             <Icon name="hash" class="size-4 opacity-50" />
             {tag.name}
-            <span class="ml-1 font-mono text-xs text-muted">{tag.count}</span>
+            <span class="ml-1 text-xs tabular-nums text-muted">{tag.count}</span>
           </a>
         </li>
       ))}
