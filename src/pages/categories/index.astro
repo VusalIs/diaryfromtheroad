@@ -6,17 +6,17 @@ import { countBy, getPosts } from "@/lib/posts";
 import { withBreadcrumbs } from "@/lib/schema";
 
 const posts = await getPosts();
-const crumbs = [{ label: "Home", href: "/" }, { label: "Sections" }];
+const crumbs = [{ label: "Home", href: "/" }, { label: "Topics" }];
 ---
 
 <BaseLayout
-  title="Sections"
-  description="Essays, design, engineering, field notes, and interviews: every section of the magazine."
-  structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Sections" }, crumbs)}
+  title="Topics"
+  description="Every topic in the journal, with the posts behind each."
+  structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Topics" }, crumbs)}
 >
   <PageHeader
-    title="Sections"
-    lead="The magazine is organised into a handful of sections, each with its own pace and voice."
+    title="Topics"
+    lead={posts.length ? "Posts grouped by topic." : "No posts yet."}
     crumbs={crumbs}
   />
   <SectionIndex counts={countBy(posts, "category")} />

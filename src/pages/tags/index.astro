@@ -19,10 +19,14 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Tags" }];
 
 <BaseLayout
   title="Tags"
-  description="Every tag in the magazine, with the number of pieces behind each."
+  description="Every tag in the journal, with the number of posts behind each."
   structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Tags" }, crumbs)}
 >
-  <PageHeader title="Tags" lead="Threads that run across sections." crumbs={crumbs} />
+  <PageHeader
+    title="Tags"
+    lead={used.length ? "Threads that run across topics." : "No tags yet."}
+    crumbs={crumbs}
+  />
   <div class="shell">
     <ul class="flex max-w-4xl flex-wrap gap-3">
       {used.map((tag) => (

@@ -9,10 +9,11 @@ export interface SocialLink extends NavLink {
 }
 
 export const siteConfig = {
-  name: "Quiet Pages",
-  title: "Quiet Pages - An independent magazine on writing, design, and the slow web",
+  name: "Diary From the Road",
+  title: "Diary From the Road",
   description:
-    "An independent magazine on writing, design, and the slow web. Essays, field notes, and conversations, published occasionally and read closely.",
+    "Notes from the road on travel, motorcycles, money, remote work, and building things along the way.",
+  // TODO: set to the production domain before launch. Canonical URLs, the feed, and the sitemap use it.
   siteUrl: "https://quietpages.xocoweb.workers.dev",
   language: "en",
   locale: "en_US",
@@ -22,34 +23,35 @@ export const siteConfig = {
   /** Used to estimate read time when a post has no `readingTime`. */
   wordsPerMinute: 220,
 
-  email: "hello@example.com",
+  /** The journal's single author: the feed's byline and the articles' structured data. */
+  author: {
+    name: "Vusal Ismayilov",
+  },
+
+  /** Shown in the footer and on the Contact page. Leave it empty and both email links are hidden. */
+  email: "",
 
   /**
-   * POST endpoints for the forms. Leave a value empty and that form runs in demo mode:
+   * POST endpoint for the contact form. Leave it empty and the form runs in demo mode:
    * it validates and confirms, but sends nothing.
    */
   forms: {
-    newsletter: "",
     contact: "",
   },
 
-  socials: [
-    { label: "X", href: "https://x.com/", icon: "twitter-x" },
-    { label: "Bluesky", href: "https://bsky.app/", icon: "bluesky" },
-    { label: "GitHub", href: "https://github.com/xocothemes/quietpages", icon: "github" },
-  ] satisfies SocialLink[],
+  /** Profiles shown in the footer and on the Contact page, e.g.
+   *  `{ label: "GitHub", href: "https://github.com/you", icon: "github" }`. */
+  socials: [] as SocialLink[],
 };
 
 export const navigation: NavLink[] = [
-  { label: "Writing", href: "/blog/" },
-  { label: "Sections", href: "/categories/" },
-  { label: "Contributors", href: "/authors/" },
+  { label: "Journal", href: "/blog/" },
+  { label: "Topics", href: "/categories/" },
   { label: "About", href: "/about/" },
 ];
 
 export const footerLinks: NavLink[] = [
   { label: "Archive", href: "/blog/" },
-  { label: "Contributors", href: "/authors/" },
   { label: "Tags", href: "/tags/" },
   { label: "About", href: "/about/" },
   { label: "Contact", href: "/contact/" },

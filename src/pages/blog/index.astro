@@ -24,17 +24,21 @@ const tagOptions = tags
   }))
   .filter((tag) => tag.count > 0);
 
-const crumbs = [{ label: "Home", href: "/" }, { label: "Writing" }];
+const crumbs = [{ label: "Home", href: "/" }, { label: "Journal" }];
 ---
 
 <BaseLayout
-  title="The archive"
-  description="Every essay, field note, and interview in the magazine. Search, or filter by section and tag."
-  structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "The archive" }, crumbs)}
+  title="Journal"
+  description="Every post in the journal, newest first. Search, or filter by topic and tag."
+  structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Journal" }, crumbs)}
 >
   <PageHeader
-    title="The archive"
-    lead={`Every essay, field note, and interview we've published, newest first. ${plural(posts.length, "piece")} so far.`}
+    title="Journal"
+    lead={
+      posts.length
+        ? `Every post, newest first. ${plural(posts.length, "post")} so far.`
+        : "No posts yet."
+    }
     crumbs={crumbs}
   />
 
@@ -52,7 +56,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Writing" }];
           id="archive-query"
           name="q"
           type="search"
-          placeholder="Search by title, section, or author"
+          placeholder="Search by title, topic, or tag"
           class="archive-search"
           data-archive-query
         />
@@ -69,7 +73,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Writing" }];
       <div class="relative flex flex-wrap items-center gap-2 lg:flex-1" data-archive-filters>
         <details class="group relative" data-filter-menu>
           <summary class="filter-pill">
-            <span class="filter-pill-label">Section</span>
+            <span class="filter-pill-label">Topic</span>
             <span class="filter-pill-value" data-filter-label="cat">
               All
             </span>
@@ -78,9 +82,9 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Writing" }];
               class="size-3.5 text-muted transition-transform group-open:rotate-180"
             />
           </summary>
-          <nav class="filter-popover" aria-label="Filter by section">
+          <nav class="filter-popover" aria-label="Filter by topic">
             <a href="/blog/" class="facet" data-filter="cat" data-value="" aria-current="true">
-              <span class="facet-label">All sections</span>
+              <span class="facet-label">All topics</span>
               <span class="facet-count" data-facet-count>
                 {posts.length}
               </span>

@@ -17,7 +17,7 @@ import Icon from "@/components/ui/Icon.astro";
   <div class="search-head flex items-center gap-3 border-b border-line pl-5 pr-3">
     <Icon name="search" class="search-icon size-5 text-muted" />
     <label for="search-input" class="sr-only">
-      Search the magazine
+      Search the journal
     </label>
     <input
       id="search-input"
@@ -28,7 +28,7 @@ import Icon from "@/components/ui/Icon.astro";
       autocomplete="off"
       autocapitalize="off"
       spellcheck="false"
-      placeholder="Search essays, notes, and interviews"
+      placeholder="Search the journal"
       role="combobox"
       aria-autocomplete="list"
       aria-expanded="false"
@@ -302,7 +302,6 @@ import Icon from "@/components/ui/Icon.astro";
     url: string;
     category: string;
     tags: string[];
-    author: string;
     date: string;
     dateLabel: string;
   }
@@ -312,7 +311,6 @@ import Icon from "@/components/ui/Icon.astro";
     entry: Entry;
     title: string;
     terms: string;
-    author: string;
     excerpt: string;
   }
 
@@ -421,7 +419,6 @@ import Icon from "@/components/ui/Icon.astro";
             entry,
             title: fold(entry.title),
             terms: fold([entry.category, ...entry.tags].join(" ")),
-            author: fold(entry.author),
             excerpt: fold(entry.excerpt),
           }));
         })
@@ -444,11 +441,9 @@ import Icon from "@/components/ui/Icon.astro";
             ? 8
             : item.terms.includes(word)
               ? 4
-              : item.author.includes(word)
-                ? 2
-                : item.excerpt.includes(word)
-                  ? 1
-                  : 0;
+              : item.excerpt.includes(word)
+                ? 1
+                : 0;
           // Every word must match somewhere.
           if (!weight) {
             score = 0;

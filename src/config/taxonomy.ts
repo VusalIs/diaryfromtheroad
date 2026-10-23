@@ -7,32 +7,32 @@ export interface Category extends Term {
   description: string;
 }
 
-/** Order matters: the homepage and footer list sections in this order. */
+/** Order matters: the homepage and footer list topics in this order. */
 export const categories = [
   {
-    slug: "essays",
-    name: "Essays",
-    description: "Long-form arguments about writing, reading, and making things for the web.",
+    slug: "travel",
+    name: "Travel",
+    description: "Travel and everyday life in Southeast Asia.",
   },
   {
-    slug: "design",
-    name: "Design",
-    description: "Typography, interfaces, and the small decisions that make a page feel calm.",
+    slug: "motorcycles",
+    name: "Motorcycles",
+    description: "Motorcycle journeys and exploration.",
   },
   {
-    slug: "engineering",
-    name: "Engineering",
-    description: "Building tools that get out of the way, written for people who ship.",
+    slug: "money",
+    name: "Money",
+    description: "Real spending and cost-of-living breakdowns.",
   },
   {
-    slug: "field-notes",
-    name: "Field Notes",
-    description: "Dispatches from walks, harbours, and the places where ideas start.",
+    slug: "remote-work",
+    name: "Remote Work",
+    description: "Remote work and life abroad.",
   },
   {
-    slug: "interviews",
-    name: "Interviews",
-    description: "Conversations with people who make things slowly and with their hands.",
+    slug: "building-things",
+    name: "Building Things",
+    description: "Building small software products and independent projects.",
   },
 ] as const satisfies readonly Category[];
 

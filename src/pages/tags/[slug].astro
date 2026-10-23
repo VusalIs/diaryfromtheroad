@@ -29,13 +29,13 @@ const crumbs = [
 ---
 
 <BaseLayout
-  title={`Writing tagged ${tag.name}`}
-  description={`${plural(posts.length, "piece")} tagged ${tag.name}.`}
+  title={`Posts tagged ${tag.name}`}
+  description={`${plural(posts.length, "post")} tagged ${tag.name}.`}
   structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: tag.name }, crumbs)}
 >
   <PageHeader
     title={tag.name}
-    lead={`${plural(posts.length, "piece")} tagged ${tag.name}.`}
+    lead={`${plural(posts.length, "post")} tagged ${tag.name}.`}
     crumbs={crumbs}
   />
   <PostGrid posts={posts} />

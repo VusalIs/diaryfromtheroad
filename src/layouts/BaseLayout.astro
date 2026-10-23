@@ -4,7 +4,6 @@ import { getImage } from "astro:assets";
 import SearchDialog from "@/components/chrome/SearchDialog.astro";
 import SiteFooter from "@/components/chrome/SiteFooter.astro";
 import SiteHeader from "@/components/chrome/SiteHeader.astro";
-import SubscribePanel from "@/components/chrome/SubscribePanel.astro";
 import { siteConfig } from "@/config/site";
 import { websiteSchema } from "@/lib/schema";
 import "@/styles/global.css";
@@ -21,8 +20,6 @@ interface Props {
   noindex?: boolean;
   publishedTime?: Date;
   modifiedTime?: Date;
-  /** Shows the subscribe panel above the footer. */
-  subscribe?: boolean;
   structuredData?: Record<string, unknown>;
 }
 
@@ -36,7 +33,6 @@ const {
   noindex = false,
   publishedTime,
   modifiedTime,
-  subscribe = true,
   structuredData,
 } = Astro.props;
 
@@ -159,11 +155,10 @@ const schema = structuredData ?? websiteSchema();
     <a class="skip-link" href="#content">
       Skip to content
     </a>
-    <SiteHeader subscribeHref={subscribe ? "#subscribe" : "/#subscribe"} />
+    <SiteHeader />
     <main id="content" class="flex-1">
       <slot />
     </main>
-    {subscribe && <SubscribePanel />}
     <SiteFooter />
     <SearchDialog />
   </body>

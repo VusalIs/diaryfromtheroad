@@ -18,44 +18,50 @@ const sections = categories.filter((category) =>
         {siteConfig.name}
       </a>
       <p class="mt-4 text-[0.9375rem] leading-relaxed text-muted">{siteConfig.description}</p>
-      <ul class="mt-6 flex items-center gap-1">
-        {siteConfig.socials.map((social) => (
-          <li>
-            <a
-              href={social.href}
-              class="icon-btn"
-              aria-label={`${siteConfig.name} on ${social.label}`}
-            >
-              <Icon name={`social-${social.icon}`} class="size-[1.05rem]" />
-            </a>
-          </li>
-        ))}
-        <li>
-          <a href={`mailto:${siteConfig.email}`} class="icon-btn" aria-label="Email the editors">
-            <Icon name="mail" class="size-[1.05rem]" />
-          </a>
-        </li>
-      </ul>
+      {(siteConfig.socials.length > 0 || siteConfig.email) && (
+        <ul class="mt-6 flex items-center gap-1">
+          {siteConfig.socials.map((social) => (
+            <li>
+              <a
+                href={social.href}
+                class="icon-btn"
+                aria-label={`${siteConfig.name} on ${social.label}`}
+              >
+                <Icon name={`social-${social.icon}`} class="size-[1.05rem]" />
+              </a>
+            </li>
+          ))}
+          {siteConfig.email && (
+            <li>
+              <a href={`mailto:${siteConfig.email}`} class="icon-btn" aria-label="Send an email">
+                <Icon name="mail" class="size-[1.05rem]" />
+              </a>
+            </li>
+          )}
+        </ul>
+      )}
     </div>
 
-    <nav aria-labelledby="footer-sections">
-      <h2 id="footer-sections" class="text-sm font-medium">
-        Sections
-      </h2>
-      <ul class="mt-4 space-y-2.5">
-        {sections.map((category) => (
-          <li>
-            <a href={categoryUrl(category.slug)} class="footer-link">
-              {category.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    {sections.length > 0 && (
+      <nav aria-labelledby="footer-topics">
+        <h2 id="footer-topics" class="text-sm font-medium">
+          Topics
+        </h2>
+        <ul class="mt-4 space-y-2.5">
+          {sections.map((category) => (
+            <li>
+              <a href={categoryUrl(category.slug)} class="footer-link">
+                {category.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
 
-    <nav aria-labelledby="footer-magazine">
-      <h2 id="footer-magazine" class="text-sm font-medium">
-        The magazine
+    <nav aria-labelledby="footer-journal">
+      <h2 id="footer-journal" class="text-sm font-medium">
+        The journal
       </h2>
       <ul class="mt-4 space-y-2.5">
         {footerLinks.map((link) => (
@@ -72,7 +78,7 @@ const sections = categories.filter((category) =>
   <div class="shell">
     <div class="flex flex-col gap-2 border-t border-line py-7 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
       <p>
-        &copy; {year} {siteConfig.name}. Independent and reader-supported.
+        &copy; {year} {siteConfig.name}.
       </p>
       <p>Set in Newsreader and Geist.</p>
     </div>

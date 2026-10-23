@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import { authors } from "@/config/authors";
 import { siteConfig } from "@/config/site";
 import { categories, tags } from "@/config/taxonomy";
 
@@ -37,19 +36,17 @@ export const getPosts = async (): Promise<Post[]> => {
   return cache;
 };
 
-export const getAuthor = (slug: string) => authors.find((author) => author.slug === slug);
 export const getCategory = (slug: string) => categories.find((item) => item.slug === slug);
 export const getTag = (slug: string) => tags.find((item) => item.slug === slug);
 
 export const postUrl = (post: Pick<Post, "slug">) => `/blog/${post.slug}/`;
 export const categoryUrl = (slug: string) => `/categories/${slug}/`;
 export const tagUrl = (slug: string) => `/tags/${slug}/`;
-export const authorUrl = (slug: string) => `/authors/${slug}/`;
 
-/** The newest post flagged `featured`, or the newest post. */
+/** The newest post flagged `featured`, or the newest post; none before the first is published. */
 export const getLeadPost = async () => {
   const posts = await getPosts();
-  return posts.find((post) => post.featured) ?? posts[0];
+  return posts.find((post) => post.featured) ?? posts.at(0);
 };
 
 /** Two points for a shared category, one per shared tag. */
@@ -71,7 +68,7 @@ export const getAdjacentPosts = async (post: Post) => {
   return { newer: posts[index - 1], older: posts[index + 1] };
 };
 
-export const countBy = (posts: Post[], key: "category" | "author") =>
+export const countBy = (posts: Post[], key: "category") =>
   posts.reduce<Record<string, number>>((counts, post) => {
     counts[post[key]] = (counts[post[key]] ?? 0) + 1;
     return counts;

@@ -1,13 +1,5 @@
 import type { APIRoute } from "astro";
-import {
-  formatDate,
-  getAuthor,
-  getCategory,
-  getPosts,
-  getTag,
-  isoDate,
-  postUrl,
-} from "@/lib/posts";
+import { formatDate, getCategory, getPosts, getTag, isoDate, postUrl } from "@/lib/posts";
 
 export interface SearchEntry {
   title: string;
@@ -15,7 +7,6 @@ export interface SearchEntry {
   url: string;
   category: string;
   tags: string[];
-  author: string;
   /** yyyy-mm-dd */
   date: string;
   dateLabel: string;
@@ -30,7 +21,6 @@ export const GET: APIRoute = async () => {
     url: postUrl(post),
     category: getCategory(post.category)?.name ?? post.category,
     tags: post.tags.map((slug) => getTag(slug)?.name ?? slug),
-    author: getAuthor(post.author)?.name ?? post.author,
     date: isoDate(post.date),
     dateLabel: formatDate(post.date, "short"),
   }));

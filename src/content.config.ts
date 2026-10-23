@@ -1,7 +1,6 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
-import { authors } from "./config/authors";
 import { categories, tags } from "./config/taxonomy";
 
 const slugs = <T extends { slug: string }>(list: readonly T[]) =>
@@ -25,7 +24,6 @@ const blog = defineCollection({
       readingTime: z.number().int().positive().optional(),
       category: z.enum(slugs(categories)),
       tags: z.array(z.enum(slugs(tags))).default([]),
-      author: z.enum(slugs(authors)),
       thumbnail: image(),
       thumbnailAlt: z.string(),
       imageCredit: z

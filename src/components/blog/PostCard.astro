@@ -1,10 +1,8 @@
 ---
 import { Image } from "astro:assets";
-import Avatar from "@/components/blog/Avatar.astro";
 import {
   categoryUrl,
   formatDate,
-  getAuthor,
   getCategory,
   getTag,
   isoDate,
@@ -18,17 +16,17 @@ interface Props {
   hidden?: boolean;
   /** Eager-load the image when the card sits above the fold. */
   eager?: boolean;
+  /** The card takes half the row instead of a third, so it asks for larger images. */
+  wide?: boolean;
 }
 
-const { post, headingLevel = 3, hidden = false, eager = false } = Astro.props;
+const { post, headingLevel = 3, hidden = false, eager = false, wide = false } = Astro.props;
 const Heading = `h${headingLevel}` as "h2" | "h3";
-const author = getAuthor(post.author);
 const category = getCategory(post.category);
 const searchable = [
   post.title,
   post.excerpt,
   category?.name,
-  author?.name,
   ...post.tags.map((tag) => getTag(tag)?.name),
 ]
   .filter(Boolean)
@@ -48,8 +46,12 @@ const searchable = [
     <Image
       src={post.thumbnail}
       alt=""
-      widths={[400, 640, 880]}
-      sizes="(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+      widths={wide ? [480, 720, 960, 1280] : [400, 640, 880]}
+      sizes={
+        wide
+          ? "(min-width: 81rem) 37rem, (min-width: 40rem) 45vw, 92vw"
+          : "(min-width: 64rem) 24rem, (min-width: 40rem) 45vw, 92vw"
+      }
       quality={72}
       loading={eager ? "eager" : "lazy"}
     />
@@ -61,6 +63,7 @@ const searchable = [
       </a>
     )}
     <time datetime={isoDate(post.date)}>{formatDate(post.date, "short")}</time>
+    <span>{post.readingTime} min read</span>
   </div>
   <Heading class="serif mt-2.5 text-title font-medium">
     <a href={postUrl(post)} class="card-title after:absolute after:inset-0 after:content-['']">
@@ -68,12 +71,4 @@ const searchable = [
     </a>
   </Heading>
   <p class="serif mt-3 line-clamp-2 text-[1.0625rem] leading-normal text-muted">{post.excerpt}</p>
-  {author && (
-    <div class="mt-5 flex items-center gap-2.5 text-[0.8125rem] text-muted">
-      <Avatar author={author} size={24} />
-      <span class="text-ink">{author.name}</span>
-      <span aria-hidden="true">&middot;</span>
-      <span>{post.readingTime} min read</span>
-    </div>
-  )}
 </article>

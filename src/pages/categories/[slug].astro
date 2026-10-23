@@ -21,14 +21,14 @@ const { category } = Astro.props;
 const posts = (await getPosts()).filter((post) => post.category === category.slug);
 const crumbs = [
   { label: "Home", href: "/" },
-  { label: "Sections", href: "/categories/" },
+  { label: "Topics", href: "/categories/" },
   { label: category.name },
 ];
 ---
 
 <BaseLayout
   title={category.name}
-  description={`${category.description} ${plural(posts.length, "piece")} in ${category.name}.`}
+  description={`${category.description} ${plural(posts.length, "post")} in ${category.name}.`}
   structuredData={withBreadcrumbs(
     {
       "@type": "CollectionPage",
@@ -41,7 +41,7 @@ const crumbs = [
 >
   <PageHeader title={category.name} lead={category.description} crumbs={crumbs}>
     <p class="rise mt-6 text-sm text-muted" style="--rise-order: 3">
-      {plural(posts.length, "piece")}
+      {plural(posts.length, "post")}
     </p>
   </PageHeader>
   <PostGrid posts={posts} />

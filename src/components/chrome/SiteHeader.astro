@@ -3,19 +3,16 @@ import ThemeToggle from "@/components/chrome/ThemeToggle.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { navigation, siteConfig } from "@/config/site";
 
-interface Props {
-  /** Where Subscribe points: the panel on this page, or the homepage one when a page hides it. */
-  subscribeHref?: string;
-}
-
-const { subscribeHref = "#subscribe" } = Astro.props;
 const path = Astro.url.pathname;
 const isCurrent = (href: string) => path === href || path.startsWith(href);
 ---
 
 <header class="site-header" data-site-header>
   <div class="shell flex h-(--header-h) items-center gap-4">
-    <a href="/" class="serif mr-auto rounded-lg text-[1.5rem] font-medium tracking-[-0.01em]">
+    <a
+      href="/"
+      class="serif mr-auto rounded-lg text-[1.25rem] leading-tight font-medium tracking-[-0.01em] min-[360px]:whitespace-nowrap sm:text-[1.5rem]"
+    >
       {siteConfig.name}
     </a>
 
@@ -42,8 +39,12 @@ const isCurrent = (href: string) => path === href || path.startsWith(href);
         <kbd data-needs-js>/</kbd>
       </a>
       <ThemeToggle />
-      <a href={subscribeHref} class="btn btn-primary btn-sm ml-2 hidden sm:inline-flex">
-        Subscribe
+      <a
+        href="/rss.xml"
+        class="ml-1 hidden min-h-10 items-center gap-1.5 rounded-full px-3 text-[0.9375rem] text-muted transition-colors hover:text-ink sm:inline-flex"
+      >
+        <Icon name="rss" class="size-4" />
+        RSS
       </a>
       <button
         type="button"
@@ -75,8 +76,9 @@ const isCurrent = (href: string) => path === href || path.startsWith(href);
           </li>
         ))}
       </ul>
-      <a href={subscribeHref} class="btn btn-primary mt-6 w-full" data-menu-close>
-        Subscribe
+      <a href="/rss.xml" class="mt-6 inline-flex min-h-11 items-center gap-2 font-medium">
+        <Icon name="rss" class="size-4" />
+        RSS feed
       </a>
     </nav>
   </div>

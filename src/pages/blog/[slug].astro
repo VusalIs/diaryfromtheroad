@@ -1,8 +1,6 @@
 ---
 import { Image, getImage } from "astro:assets";
 import { render } from "astro:content";
-import AuthorNote from "@/components/blog/AuthorNote.astro";
-import Avatar from "@/components/blog/Avatar.astro";
 import Breadcrumbs from "@/components/blog/Breadcrumbs.astro";
 import PostCard from "@/components/blog/PostCard.astro";
 import ShareSheet from "@/components/blog/ShareSheet.astro";
@@ -13,11 +11,9 @@ import Icon from "@/components/ui/Icon.astro";
 import { siteConfig } from "@/config/site";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import {
-  authorUrl,
   categoryUrl,
   formatDate,
   getAdjacentPosts,
-  getAuthor,
   getCategory,
   getPosts,
   getRelatedPosts,
@@ -40,7 +36,6 @@ interface Props {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post.entry);
-const author = getAuthor(post.author);
 const category = getCategory(post.category);
 const related = await getRelatedPosts(post);
 const { newer, older } = await getAdjacentPosts(post);
@@ -56,11 +51,12 @@ const card = await getImage({
 
 const crumbs: Crumb[] = [
   { label: "Home", href: "/" },
-  { label: "Writing", href: "/blog/" },
+  { label: "Journal", href: "/blog/" },
   ...(category ? [{ label: category.name, href: categoryUrl(category.slug) }] : []),
   { label: post.title },
 ];
 
+const person = { "@type": "Person", name: siteConfig.author.name, url: absolute("/about/") };
 const schema = withBreadcrumbs(
   {
     "@type": "BlogPosting",
@@ -75,10 +71,8 @@ const schema = withBreadcrumbs(
     keywords: post.tags.map((tag) => getTag(tag)?.name ?? tag).join(", "),
     timeRequired: `PT${post.readingTime}M`,
     image: absolute(card.src),
-    author: author
-      ? { "@type": "Person", name: author.name, url: absolute(authorUrl(author.slug)) }
-      : undefined,
-    publisher: { "@type": "Organization", name: siteConfig.name, url: absolute("/") },
+    author: person,
+    publisher: person,
   },
   crumbs,
 );
@@ -113,15 +107,6 @@ const schema = withBreadcrumbs(
           {post.excerpt}
         </p>
         <div class="rise mt-9 flex flex-col items-center gap-4" style="--rise-order: 3">
-          {author && (
-            <a href={authorUrl(author.slug)} class="group flex items-center gap-3 text-left">
-              <Avatar author={author} size={44} />
-              <span class="text-sm leading-snug">
-                <span class="block font-medium group-hover:text-accent">{author.name}</span>
-                <span class="block text-muted">{author.role}</span>
-              </span>
-            </a>
-          )}
           <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
             <div class="meta justify-center">
               <time datetime={isoDate(post.date)}>{formatDate(post.date)}</time>
@@ -208,15 +193,9 @@ const schema = withBreadcrumbs(
             hidden
           >
             <Icon name="social-share" class="size-3.5" />
-            Share this essay
+            Share this post
           </button>
         </div>
-
-        {author && (
-          <div class="mt-10">
-            <AuthorNote author={author} />
-          </div>
-        )}
 
         <nav class="mt-10 grid gap-4 sm:grid-cols-2" aria-label="More writing">
           {older && (

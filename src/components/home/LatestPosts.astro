@@ -11,9 +11,13 @@ interface Props {
 
 const { posts } = Astro.props;
 const { title, count } = homeConfig.latest;
-const filters = categories.filter((category) =>
-  posts.some((post) => post.category === category.slug),
-);
+/* A filter only earns its place once there are more posts than the grid shows. */
+const filters =
+  posts.length > count
+    ? categories.filter((category) => posts.some((post) => post.category === category.slug))
+    : [];
+/* One or two cards share the row in halves rather than leaving a third of it empty. */
+const wide = posts.length <= 2;
 ---
 
 <section class="shell mt-28 sm:mt-36" aria-labelledby="latest-title" data-latest data-count={count}>
@@ -22,7 +26,7 @@ const filters = categories.filter((category) =>
       {title}
     </h2>
     <a href="/blog/" class="group inline-flex items-center gap-1.5 text-sm font-medium">
-      View the archive
+      All posts
       <Icon
         name="arrow-right"
         class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
@@ -30,20 +34,22 @@ const filters = categories.filter((category) =>
     </a>
   </div>
 
-  <div class="segmented mt-8" role="group" aria-label="Filter by section" data-needs-js>
-    <button type="button" aria-pressed="true" data-filter="">
-      All
-    </button>
-    {filters.map((category) => (
-      <button type="button" aria-pressed="false" data-filter={category.slug}>
-        {category.name}
+  {filters.length > 0 && (
+    <div class="segmented mt-8" role="group" aria-label="Filter by topic" data-needs-js>
+      <button type="button" aria-pressed="true" data-filter="">
+        All
       </button>
-    ))}
-  </div>
+      {filters.map((category) => (
+        <button type="button" aria-pressed="false" data-filter={category.slug}>
+          {category.name}
+        </button>
+      ))}
+    </div>
+  )}
 
-  <div class="mt-12 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+  <div class:list={["mt-12 grid gap-x-8 gap-y-14 sm:grid-cols-2", !wide && "lg:grid-cols-3"]}>
     {posts.map((post, index) => (
-      <PostCard post={post} hidden={index >= count} />
+      <PostCard post={post} hidden={index >= count} wide={wide} />
     ))}
   </div>
   <p class="sr-only" aria-live="polite" data-latest-status></p>
