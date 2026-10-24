@@ -194,8 +194,8 @@ No code changes are needed: `siteUrl` already points at the domain.
 
 - Connect `diaryfromtheroad.com` ([Connecting diaryfromtheroad.com](#connecting-diaryfromtheroadcom)). `siteUrl` already points at it, so until then, share links, link previews, RSS item links, and the sitemap point at a domain that doesn't answer yet.
 - Set `email` in `src/config/site.ts` if you want it on the Contact page and in the footer; it is empty and hidden now.
-- Replace the tags in `src/config/taxonomy.ts`; they are still the theme's.
-- Replace `public/favicon.svg`, a plain "D" monogram in the site's colors, with your own mark if you have one, and optionally `public/og-image.png`.
+- The tags in `src/config/taxonomy.ts` are places and recurring themes (Vietnam, Cost of Living, Living Abroad, and so on). Add one there before using it in a post.
+- Replace `public/favicon.svg`, a plain "D" monogram in the site's colors, with your own mark if you have one (and `public/favicon.ico`, the same mark at 16, 32, and 48 pixels), and optionally `public/og-image.png`.
 - Email sign-up is set up and on. To close it, set `subscriptions.enabled` to `false` in `src/config/site.ts`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) has the details.
 - The privacy notice in `src/pages/privacy.astro` describes what the site and the subscriber list store, and who handles them. It makes no legal claims; check what applies to you, and update it if you change how the list works.
 

@@ -81,7 +81,7 @@ const schema = withBreadcrumbs(
     mainEntityOfPage: post.canonical ?? url,
     inLanguage: siteConfig.language,
     articleSection: category?.name,
-    keywords: post.tags.map((tag) => getTag(tag)?.name ?? tag).join(", "),
+    keywords: post.tags.map((tag) => getTag(tag)?.name ?? tag).join(", ") || undefined,
     timeRequired: `PT${post.readingTime}M`,
     image: absolute(card.src),
     author: person,

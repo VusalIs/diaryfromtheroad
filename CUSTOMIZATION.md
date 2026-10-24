@@ -59,13 +59,13 @@ export const categories = [
 ] as const satisfies readonly Category[];
 
 export const tags = [
-  { slug: "writing", name: "Writing" },
+  { slug: "vietnam", name: "Vietnam" },
   // ...
 ] as const satisfies readonly Term[];
 ```
 
 - A post's `category` and `tags` are validated against these slugs with `z.enum`, so a typo fails the build. Add a topic or tag to the config before using it in a post.
-- Topic and tag pages are only generated for terms with at least one published post, and the Journal's menus and the Topics page skip empty terms too, so no link leads to an empty page.
+- Topic and tag pages are only generated for terms with at least one published post, and the Journal's menus and the Topics page skip empty terms too, so no link leads to an empty page. The Tags page, like the Apps page, is marked `noindex` while it has nothing to list.
 - Order in `categories` is the order everywhere topics are listed. Tags keep their order in the archive menu; the Tags page sorts them by post count.
 - A topic's `description` is the lead on its page, its line on the Topics page, and part of its meta description.
 
@@ -298,7 +298,7 @@ Every URL ends with a trailing slash (`trailingSlash: "always"` in `astro.config
 | Confirm      | [src/pages/subscribe/confirm.astro](./src/pages/subscribe/confirm.astro) | `/subscribe/confirm/` |
 | Unsubscribe  | [src/pages/unsubscribe.astro](./src/pages/unsubscribe.astro)             | `/unsubscribe/`       |
 
-Every route is prerendered except `robots.txt` and the last three, which render on request in the Worker (`export const prerender = false`). The confirm and unsubscribe pages are `noindex` and left out of the sitemap.
+Every route is prerendered except `robots.txt` and the last three, which render on request in the Worker (`export const prerender = false`). The confirm and unsubscribe pages are `noindex` and left out of the sitemap. So is any page marked `noindex`, such as Apps or Tags while they are empty: the sitemap filter in [astro.config.mjs](./astro.config.mjs) checks each page's HTML. `public/favicon.ico` is a fallback for browsers and feed readers that ask for it directly; pages link `public/favicon.svg`.
 
 Topic and tag pages list every post they hold on one page. If a topic outgrows that, add Astro's `paginate` to its route.
 
@@ -382,7 +382,7 @@ The site is a Cloudflare Worker, built with the `@astrojs/cloudflare` adapter: `
 - `siteConfig.siteUrl` is `https://diaryfromtheroad.com`. Connect the domain (README.md, Connecting diaryfromtheroad.com), then confirm a page's canonical tag and `/robots.txt` on it.
 - Check `siteConfig.author.name`, and add your email to `siteConfig.email` in `src/config/site.ts` if you want it on the Contact page and in the footer.
 - Add your posts to `src/content/blog`; see its README.
-- Replace the tags in `src/config/taxonomy.ts` with the ones you publish under.
+- Add tags to `src/config/taxonomy.ts` as new places and themes come up.
 - Write the About page.
-- Replace `public/favicon.svg` (a stand-in monogram), and, if you like, `public/og-image.png` with a photograph of your own.
+- Replace `public/favicon.svg` (a stand-in monogram) and `public/favicon.ico` (the same mark at 16, 32, and 48 pixels), and, if you like, `public/og-image.png` with a photograph of your own.
 - Email sign-up is on. Before changing what it stores or who handles it, update the privacy notice ([SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)).

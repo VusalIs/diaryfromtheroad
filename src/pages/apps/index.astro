@@ -10,10 +10,12 @@ const apps = await getApps();
 const crumbs = [{ label: "Home", href: "/" }, { label: "Apps" }];
 ---
 
+{/* Kept out of search results and the sitemap until there is an app to show. */}
 <BaseLayout
   title="Apps"
   description="The software apps and products I build."
   structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Apps" }, crumbs)}
+  noindex={apps.length === 0}
 >
   <PageHeader
     title="Apps"

@@ -36,15 +36,16 @@ export const categories = [
   },
 ] as const satisfies readonly Category[];
 
+/** Threads that run across topics: places, and themes that come back. Only tags with posts get a page. */
 export const tags = [
-  { slug: "writing", name: "Writing" },
-  { slug: "typography", name: "Typography" },
-  { slug: "minimalism", name: "Minimalism" },
-  { slug: "tools", name: "Tools" },
-  { slug: "travel", name: "Travel" },
-  { slug: "process", name: "Process" },
-  { slug: "web", name: "Web" },
-  { slug: "books", name: "Books" },
+  { slug: "vietnam", name: "Vietnam" },
+  { slug: "thailand", name: "Thailand" },
+  { slug: "hanoi", name: "Hanoi" },
+  { slug: "da-nang", name: "Da Nang" },
+  { slug: "cost-of-living", name: "Cost of Living" },
+  { slug: "budget-travel", name: "Budget Travel" },
+  { slug: "living-abroad", name: "Living Abroad" },
+  { slug: "side-projects", name: "Side Projects" },
 ] as const satisfies readonly Term[];
 
 export type CategorySlug = (typeof categories)[number]["slug"];

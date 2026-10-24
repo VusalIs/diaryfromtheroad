@@ -17,10 +17,12 @@ const used = tags
 const crumbs = [{ label: "Home", href: "/" }, { label: "Tags" }];
 ---
 
+{/* Kept out of search results and the sitemap until a post has a tag. */}
 <BaseLayout
   title="Tags"
   description="Every tag in the journal, with the number of posts behind each."
   structuredData={withBreadcrumbs({ "@type": "CollectionPage", name: "Tags" }, crumbs)}
+  noindex={used.length === 0}
 >
   <PageHeader
     title="Tags"

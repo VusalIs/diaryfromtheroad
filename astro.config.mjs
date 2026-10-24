@@ -1,4 +1,5 @@
 // @ts-check
+import { readFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { defineConfig, envField } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
@@ -28,6 +29,41 @@ function dropLocalVariables() {
     },
   };
 }
+
+/**
+ * Keeps pages marked `noindex`, such as a listing with nothing in it yet, out of the sitemap. The
+ * sitemap is written after the pages, so its filter can read each page's HTML.
+ */
+function indexablePages() {
+  /** @type {URL | undefined} */
+  let clientDir;
+  return {
+    /** @type {import("astro").AstroIntegration} */
+    integration: {
+      name: "indexable-pages",
+      hooks: {
+        "astro:config:done": ({ config }) => {
+          clientDir = config.build.client;
+        },
+      },
+    },
+    /** @param {string} page */
+    includes(page) {
+      if (!clientDir) return true;
+      try {
+        const html = readFileSync(
+          new URL(`.${new URL(page).pathname}index.html`, clientDir),
+          "utf8",
+        );
+        return !html.includes('<meta name="robots" content="noindex');
+      } catch {
+        return true;
+      }
+    },
+  };
+}
+
+const indexable = indexablePages();
 
 export default defineConfig({
   site: siteConfig.siteUrl,
@@ -69,8 +105,10 @@ export default defineConfig({
         !page.endsWith(".txt") &&
         // Reached only from links in emails.
         !page.endsWith("/subscribe/confirm/") &&
-        !page.endsWith("/unsubscribe/"),
+        !page.endsWith("/unsubscribe/") &&
+        indexable.includes(page),
     }),
+    indexable.integration,
     dropLocalVariables(),
   ],
   markdown: {
