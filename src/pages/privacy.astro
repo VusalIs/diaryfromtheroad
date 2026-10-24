@@ -9,7 +9,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
 
 <BaseLayout
   title="Privacy"
-  description={`What ${siteConfig.name} does with information about visitors: no accounts, analytics, or cookies of its own, and hosting on Cloudflare.`}
+  description={`What ${siteConfig.name} does with information about visitors and email subscribers: what is stored, who handles it, and how to unsubscribe.`}
   structuredData={withBreadcrumbs({ "@type": "WebPage", name: "Privacy" }, crumbs)}
 >
   <PageHeader
@@ -22,19 +22,60 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
     <div class="prose-article max-w-[37rem]">
       <h2>What the site keeps</h2>
       <p>
-        There are no accounts, comments, contact forms, or email sign-ups, and the site runs no
-        analytics or advertising scripts. Its own code doesn't set cookies.
+        There are no accounts, comments, or contact forms, and the site runs no analytics or
+        advertising scripts. Its own code doesn't set cookies.
       </p>
       <p>
-        The one thing it saves is your choice of light or dark mode, if you use the switch in the
-        header. That choice stays in your browser's local storage and isn't sent anywhere.
+        If you use the switch in the header, your choice of light or dark mode is saved in your
+        browser's local storage and isn't sent anywhere. The only other thing kept is your email
+        address, if you subscribe to new posts (below).
       </p>
 
-      <h2>Hosting</h2>
+      <h2>Email subscriptions</h2>
+      <p>If you sign up at the end of a post, the subscriber list keeps:</p>
+      <ul>
+        <li>your email address;</li>
+        <li>
+          whether you are waiting to confirm, subscribed, or unsubscribed, and when each of those
+          happened;
+        </li>
+        <li>
+          two random codes for the links in your emails: one to confirm, stored only in scrambled
+          (hashed) form, and one to unsubscribe.
+        </li>
+      </ul>
       <p>
-        The site is hosted on <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>. To
-        deliver the pages, Cloudflare handles the requests your browser makes, including your IP
-        address, under its own privacy policy.
+        Nothing else is stored with it: no name and no IP address. It is used only to email you when
+        I publish a new post.
+      </p>
+      <p>
+        You are only subscribed once you open the link in the confirmation email and press Confirm.
+        The link works for 48 hours. If you don't confirm, nothing more is sent unless the address
+        is entered in the form again. Unconfirmed addresses are deleted automatically after their
+        link expires, at the next sign-up by anyone.
+      </p>
+      <p>
+        Every email includes a link to unsubscribe. Open it and press Unsubscribe, and no more
+        emails are sent. Your address then stays on the list marked as unsubscribed, so it isn't
+        emailed again by mistake. To have it deleted completely, <a href="/contact/">contact me</a>.
+      </p>
+
+      <h2>Who handles it</h2>
+      <ul>
+        <li>
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> hosts the site and
+          stores the subscriber list. To deliver the pages, it handles the requests your browser
+          makes, including your IP address. When you use the sign-up form, its Turnstile check looks
+          at your IP address and browser to tell people from bots.
+        </li>
+        <li>
+          <a href="https://resend.com/legal/privacy-policy">Resend</a> sends the confirmation
+          emails, so it handles your address to deliver them.
+        </li>
+      </ul>
+      <p>
+        The list is kept by {siteConfig.author.name}, who writes this journal. Each service works
+        under its own privacy policy.
       </p>
 
       <h2>Search</h2>
@@ -47,12 +88,6 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
       <p>
         The links to Instagram, X, and Reddit, and the share buttons on posts, take you to those
         sites, which have their own privacy policies. Nothing from them loads here unless you click.
-      </p>
-
-      <h2>Email subscriptions</h2>
-      <p>
-        There's no email sign-up at the moment. If I add one, this page will explain what it stores
-        and how to unsubscribe before it goes live.
       </p>
 
       <h2>Questions</h2>

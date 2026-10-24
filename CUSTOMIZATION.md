@@ -270,7 +270,7 @@ To add an icon, save its SVG from [lucide.dev](https://lucide.dev/) into `src/ic
 
 Readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head. They reach you through the profiles in `siteConfig.socials`, shown in the footer and on the Contact page, and through `siteConfig.email` once you set it. There is no contact form.
 
-The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It stays closed until its production setup is done and `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), describes the site as it works today, without sign-up; the footer links to it, and so does the form once it is enabled. Add the subscriber list to it before opening sign-up (the subscriber-list wording it had before is in commit `6a906c9`).
+The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It is on while `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), describes what the site and the subscriber list store; the footer and the form link to it.
 
 ## Routes
 
@@ -385,4 +385,4 @@ The site is a Cloudflare Worker, built with the `@astrojs/cloudflare` adapter: `
 - Replace the tags in `src/config/taxonomy.ts` with the ones you publish under.
 - Write the About page.
 - Replace `public/favicon.svg` (a stand-in monogram), and, if you like, `public/og-image.png` with a photograph of your own.
-- Before opening email sign-up, follow [Setting up production](./SUBSCRIPTIONS.md#setting-up-production): the D1 database ID in `wrangler.jsonc`, Turnstile, a verified sending domain in Resend, `EMAIL_FROM`, and the two secrets. Then set `subscriptions.enabled` to `true`, and add the subscriber list to the privacy notice.
+- Email sign-up is on. Before changing what it stores or who handles it, update the privacy notice ([SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)).

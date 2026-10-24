@@ -42,12 +42,11 @@ export const siteConfig = {
   ] satisfies SocialLink[],
 
   /**
-   * Email sign-up (SUBSCRIPTIONS.md). Leave `enabled` false until every production step there is
-   * done and checked: while it is false, production builds leave the form out and the server
-   * refuses sign-ups. `npm run dev` ignores it.
+   * Email sign-up (SUBSCRIPTIONS.md). Set `enabled` to false to close it again: production builds
+   * then leave the form out and the server refuses sign-ups. `npm run dev` ignores it.
    */
   subscriptions: {
-    enabled: false,
+    enabled: true,
   },
 };
 
