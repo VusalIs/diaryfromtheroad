@@ -22,8 +22,15 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
     <div class="prose-article max-w-[37rem]">
       <h2>What the site keeps</h2>
       <p>
-        There are no accounts, comments, or contact forms, and the site runs no analytics or
-        advertising scripts. Its own code doesn't set cookies.
+        There are no accounts, comments, or contact forms, and no advertising. The site's own code
+        doesn't set cookies.
+      </p>
+      <p>
+        To see how many people visit and which posts they read, the site uses Cloudflare Web
+        Analytics: Cloudflare adds a small script to each page that reports the visit. It uses no
+        cookies and doesn't follow you from site to site. What it records is the page, the site that
+        sent you here, your country, your browser, operating system, and type of device, and how
+        fast the page loaded. It counts visits and page views, not individual people.
       </p>
       <p>
         If you use the switch in the header, your choice of light or dark mode is saved in your
@@ -76,7 +83,7 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
           stores the subscriber list. To deliver the pages, it handles the requests your browser
           makes, including your IP address. When you use the sign-up form, its Turnstile check looks
           at your IP address and browser to tell people from bots, and its DNS service answers the
-          lookup of your email's domain.
+          lookup of your email's domain. It also runs the visit counting described above.
         </li>
         <li>
           <a href="https://resend.com/legal/privacy-policy">Resend</a> sends the welcome email, and

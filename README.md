@@ -174,6 +174,7 @@ npx wrangler deploy
 - **DNS → Settings → DNSSEC** is on.
 - **Email → Email Routing** forwards `hello@diaryfromtheroad.com` to a personal inbox (its `MX` and SPF records are on the root), and the DNS records Resend asked for let the site send email from the domain ([SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)).
 - Google Search Console has the domain, with `sitemap-index.xml` submitted.
+- **Web Analytics** (dashboard link: `https://dash.cloudflare.com/?to=/:account/web-analytics`) counts visits and page views with its automatic setup: Cloudflare adds its beacon script to each page, so there is nothing for it in this repository. It uses no cookies and counts visits, not individual people. [The privacy notice](./src/pages/privacy.astro) describes it; update both if you change or switch it off.
 
 ## Before launch
 
