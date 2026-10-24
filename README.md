@@ -147,7 +147,7 @@ It runs `astro check`, the tests, the production build, and Prettier's check, an
 
 ## Deployment
 
-The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diary-from-the-road`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`). The subscriber database binding is commented out while subscriptions are off. Secrets are never in the file.
+The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`). The subscriber database binding is commented out while subscriptions are off. Secrets are never in the file.
 
 ```bash
 npm run build
@@ -164,7 +164,7 @@ npx wrangler deploy
 
 ### Temporary deployment on workers.dev
 
-Until the domain is connected, the site runs at `https://diary-from-the-road.<your-subdomain>.workers.dev`, where the subdomain is your Cloudflare account's; Wrangler prints the full URL when it deploys.
+Until the domain is connected, the site runs at `https://diaryfromtheroad.<your-subdomain>.workers.dev`, where the subdomain is your Cloudflare account's; Wrangler prints the full URL when it deploys.
 
 - Every page, including the article, is served there.
 - It stays out of search engines: `robots.txt` disallows crawling there, and every page's canonical URL points at `diaryfromtheroad.com`.
@@ -185,7 +185,7 @@ No code changes are needed: `siteUrl` already points at the domain.
 1. Buy `diaryfromtheroad.com` at GoDaddy.
 2. In the Cloudflare dashboard, in the account that has the Worker, add the domain as a site (the Free plan is enough). Cloudflare shows two nameservers.
 3. At GoDaddy, turn off DNSSEC for the domain if it is on, then change its nameservers (Domain → DNS → Nameservers → Change → use my own nameservers) to Cloudflare's two. Wait for Cloudflare to mark the site Active; it can take up to a day.
-4. Workers & Pages → `diary-from-the-road` → Settings → Domains & Routes → Add → Custom domain → `diaryfromtheroad.com`. Cloudflare creates the DNS record and the certificate.
+4. Workers & Pages → `diaryfromtheroad` → Settings → Domains & Routes → Add → Custom domain → `diaryfromtheroad.com`. Cloudflare creates the DNS record and the certificate.
 5. Check `https://diaryfromtheroad.com`: pages load over HTTPS, `/robots.txt` now allows crawling and lists the sitemap, and a shared link shows its preview.
 6. Optional: to make `www.diaryfromtheroad.com` work, add a redirect rule in Cloudflare that sends it to `https://diaryfromtheroad.com`; the canonical domain stays without `www`.
 7. Optional: once the domain works, set `"workers_dev": false` in `wrangler.jsonc` and deploy again, so the temporary URL stops answering. Nothing from it was indexed.

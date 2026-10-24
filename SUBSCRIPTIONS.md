@@ -85,7 +85,7 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
    npx wrangler deploy
    ```
 
-7. **Store the secrets** in the Worker. Each command asks for the value; it is never written to a file. Or use the dashboard: Workers & Pages → `diary-from-the-road` → Settings → Variables and Secrets → Add, type Secret.
+7. **Store the secrets** in the Worker. Each command asks for the value; it is never written to a file. Or use the dashboard: Workers & Pages → `diaryfromtheroad` → Settings → Variables and Secrets → Add, type Secret.
 
    ```bash
    npx wrangler secret put TURNSTILE_SECRET_KEY

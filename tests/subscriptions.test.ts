@@ -559,7 +559,7 @@ describe("configuration checks", () => {
       [{ emailFrom: undefined }, /EMAIL_FROM variable is missing/],
       [{ emailFrom: "posts at diary" }, /not a valid sender/],
       [{ siteUrl: "https://example.com", requestOrigin: "https://example.com" }, /placeholder/],
-      [{ requestOrigin: "https://diary-from-the-road.someone.workers.dev" }, /not siteUrl/],
+      [{ requestOrigin: "https://diaryfromtheroad.someone.workers.dev" }, /not siteUrl/],
     ];
     for (const [change, reason] of closed) {
       const problems = signupProblems({ ...ready, ...change });

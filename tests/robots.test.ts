@@ -15,8 +15,8 @@ describe("robotsTxt", () => {
 
   it("keeps the temporary workers.dev URL, preview URLs, and any other host out", () => {
     for (const host of [
-      "https://diary-from-the-road.someone.workers.dev",
-      "https://abc123-diary-from-the-road.someone.workers.dev",
+      "https://diaryfromtheroad.someone.workers.dev",
+      "https://abc123-diaryfromtheroad.someone.workers.dev",
       "https://www.diaryfromtheroad.com",
       "http://diaryfromtheroad.com",
       "https://diaryfromtheroad.com.attacker.test",

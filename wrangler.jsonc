@@ -1,5 +1,5 @@
 {
-  "name": "diary-from-the-road",
+  "name": "diaryfromtheroad",
   "compatibility_date": "2026-10-08",
   // Deploy with `npm run build`, then `npx wrangler deploy`, which uses the Worker config the build writes.
   // The workers.dev URL serves the site until diaryfromtheroad.com is connected; robots.txt keeps it
