@@ -1,7 +1,5 @@
 ---
 import { PUBLIC_TURNSTILE_SITE_KEY } from "astro:env/client";
-import { Image } from "astro:assets";
-import heroImage from "@/assets/hero-road.jpg";
 import SubscribeFields from "@/components/blog/SubscribeFields.astro";
 import Icon from "@/components/ui/Icon.astro";
 import { siteConfig } from "@/config/site";
@@ -33,6 +31,24 @@ const perks = [
   { icon: "utensils", label: "Cheap, good local food" },
   { icon: "compass", label: "Activities worth a detour" },
 ];
+
+/* The illustration's pins: the same four kinds of place, along one route. */
+const pins = [
+  { icon: "mountain", x: 262, y: 175 },
+  { icon: "coffee", x: 118, y: 262 },
+  { icon: "utensils", x: 238, y: 395 },
+  { icon: "compass", x: 110, y: 520 },
+];
+const lucide = import.meta.glob<string>("/src/icons/lucide/*.svg", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+/* A Lucide icon's shapes without its own <svg>, to draw inside the illustration. */
+const iconShapes = (name: string) =>
+  (lucide[`/src/icons/lucide/${name}.svg`] ?? "")
+    .replace(/^[\s\S]*?<svg[^>]*>/, "")
+    .replace(/<\/svg>\s*$/, "");
 ---
 
 {siteKey && (
@@ -52,16 +68,52 @@ const perks = [
         <Icon name="x" class="size-4" />
       </button>
 
+      {/* A made-up map in the site's colors: one route through the four kinds of place on offer. */}
       <div class="newsletter-media">
-        <Image
-          src={heroImage}
-          alt=""
-          widths={[320, 480, 640, 800]}
-          sizes="21rem"
-          quality={72}
-          loading="lazy"
-          class="object-[55%_50%]"
-        />
+        <svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <rect class="map-land" width="360" height="640" />
+          <path
+            class="map-park"
+            d="M215 205c30-12 85-8 105 12c14 14 10 52-8 66c-24 18-82 16-104-4c-16-14-14-62 7-74z"
+          />
+          <ellipse
+            class="map-water"
+            cx="72"
+            cy="392"
+            rx="48"
+            ry="66"
+            transform="rotate(-12 72 392)"
+          />
+          <g class="map-street">
+            <path d="M-10 70L370 40" />
+            <path d="M-10 215L370 190" />
+            <path d="M-10 330L370 300" />
+            <path d="M-10 590L370 610" />
+            <path d="M40-10L60 650" />
+            <path d="M300-10L330 650" />
+            <path d="M200-10L207 192" />
+          </g>
+          <g class="map-road">
+            <path d="M-10 140C100 120 250 100 370 110" />
+            <path d="M-10 455C120 475 260 435 370 465" />
+            <path d="M150-10C160 150 110 350 175 650" />
+          </g>
+          <path
+            class="map-route"
+            d="M300-10C296 70 268 120 262 175C256 225 150 215 118 262C88 306 222 330 238 395C252 455 128 455 110 520C96 570 150 610 130 650"
+          />
+          {pins.map((pin) => (
+            <g transform={`translate(${pin.x} ${pin.y})`}>
+              <ellipse class="map-pin-shadow" cy="1" rx="9" ry="3" />
+              <path class="map-pin" d="M0 0L-9-13A17 17 0 1 1 9-13Z" />
+              <g
+                class="map-pin-icon"
+                transform="translate(-9 -36.4) scale(0.75)"
+                set:html={iconShapes(pin.icon)}
+              />
+            </g>
+          ))}
+        </svg>
       </div>
 
       <div class="newsletter-body">
@@ -171,22 +223,80 @@ const perks = [
     z-index: 1;
   }
 
-  /* The photo only fits beside the text on wide screens; lazy, it loads only once shown. */
+  /* The illustration only fits beside the text on wide screens. Streets are lighter than the
+     land in both themes, as on a real map. */
   .newsletter-media {
+    --map-land: var(--sunken);
+    --map-street: var(--surface);
     display: none;
     position: relative;
-    background: var(--sunken);
   }
 
-  .newsletter-media img {
+  :global(.dark) .newsletter-media {
+    --map-land: var(--canvas);
+    --map-street: var(--line);
+  }
+
+  .newsletter-media svg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
   }
 
-  /* The text scrolls inside the panel when the screen is too short for it. */
+  .map-land {
+    fill: var(--map-land);
+  }
+
+  .map-park {
+    fill: color-mix(in oklab, #a5aa7b 34%, var(--map-land));
+  }
+
+  .map-water {
+    fill: color-mix(in oklab, #7d989c 36%, var(--map-land));
+  }
+
+  .map-street,
+  .map-road {
+    fill: none;
+    stroke: var(--map-street);
+    stroke-linecap: round;
+  }
+
+  .map-street {
+    stroke-width: 3.5;
+  }
+
+  .map-road {
+    stroke-width: 9;
+  }
+
+  .map-route {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-dasharray: 0.5 7;
+    stroke-linecap: round;
+  }
+
+  .map-pin {
+    fill: var(--accent);
+  }
+
+  .map-pin-shadow {
+    fill: var(--ink);
+    opacity: 0.18;
+  }
+
+  /* Lucide's own drawing attributes, which the icons' shapes inherit. */
+  .map-pin-icon {
+    fill: none;
+    stroke: var(--surface);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .newsletter-body {
     max-height: calc(100dvh - 2.5rem - 2px);
     overflow-y: auto;
