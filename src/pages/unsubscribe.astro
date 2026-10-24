@@ -10,7 +10,10 @@ import { getSubscribersDb } from "@/lib/subscriptions-env";
 export const prerender = false;
 
 Astro.response.headers.set("Cache-Control", "no-store");
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+/* Keeps the token in the address from reaching other sites. Not `no-referrer`: under it, browsers
+   without `Sec-Fetch-Site` (some in-app browsers) send the button's POST with `Origin: null`, and
+   Astro's cross-site check refuses it. */
+Astro.response.headers.set("Referrer-Policy", "same-origin");
 
 const db = getSubscribersDb();
 let token = Astro.url.searchParams.get("token") ?? "";
