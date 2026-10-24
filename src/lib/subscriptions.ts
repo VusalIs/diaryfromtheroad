@@ -23,7 +23,7 @@ export interface EmailMessage {
   subject: string;
   text: string;
   /** The recipient's unsubscribe link, also sent as a `List-Unsubscribe` header. */
-  unsubscribeUrl: string;
+  unsubscribeUrl?: string;
 }
 
 export type SendEmail = (message: EmailMessage) => Promise<void>;
@@ -111,10 +111,12 @@ export function createResendSender({
         subject,
         text,
         // Lets mail apps show their own unsubscribe button, which posts to the same link.
-        headers: {
-          "List-Unsubscribe": `<${unsubscribeUrl}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
+        ...(unsubscribeUrl && {
+          headers: {
+            "List-Unsubscribe": `<${unsubscribeUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        }),
       }),
       signal: AbortSignal.timeout(timeout),
     });
@@ -248,24 +250,59 @@ export async function subscribe(
   return "accepted";
 }
 
-/** Marks a pending sign-up as confirmed. Each link works once, within CONFIRMATION_TTL. */
+/**
+ * Marks a pending sign-up as confirmed. Each link works once, within CONFIRMATION_TTL.
+ * `onConfirmed` is called with the address once it is confirmed, never on a reused or expired link.
+ */
 export async function confirmSubscription(
   token: string,
-  { db, now = new Date() }: { db: Database; now?: Date },
+  {
+    db,
+    now = new Date(),
+    onConfirmed,
+  }: { db: Database; now?: Date; onConfirmed?: (email: string) => void },
 ): Promise<"confirmed" | "invalid"> {
   if (!isToken(token)) return "invalid";
-  const result = await db
+  const confirmed = await db
     .prepare(
       `UPDATE subscribers SET status = 'active', confirmed_at = ?, confirmation_token_hash = NULL, unsubscribed_at = NULL
-       WHERE confirmation_token_hash = ? AND status = 'pending' AND confirmation_sent_at > ?`,
+       WHERE confirmation_token_hash = ? AND status = 'pending' AND confirmation_sent_at > ?
+       RETURNING email`,
     )
     .bind(
       now.toISOString(),
       await hashToken(token),
       new Date(now.getTime() - CONFIRMATION_TTL).toISOString(),
     )
-    .run();
-  return result.meta.changes === 1 ? "confirmed" : "invalid";
+    .first<{ email: string }>();
+  if (!confirmed) return "invalid";
+  onConfirmed?.(confirmed.email);
+  return "confirmed";
+}
+
+/** The note to the site's owner when someone confirms. */
+export function subscriberNotification({
+  to,
+  siteName,
+  email,
+  activeCount,
+}: {
+  to: string;
+  siteName: string;
+  email: string;
+  activeCount: number;
+}): EmailMessage {
+  return {
+    to,
+    subject: `New subscriber: ${email}`,
+    text: [
+      `${email} just confirmed a subscription to ${siteName}.`,
+      "",
+      `Active subscribers: ${activeCount}`,
+      "",
+      "The full list is in Cloudflare: Storage & databases > D1 > diary-subscribers.",
+    ].join("\n"),
+  };
 }
 
 /**

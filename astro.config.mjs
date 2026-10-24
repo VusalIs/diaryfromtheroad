@@ -54,8 +54,10 @@ export default defineConfig({
         optional: true,
       }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
-      /* Not a secret: the verified sender, set in wrangler.jsonc `vars`. Read at runtime too. */
+      /* Not secrets: the verified sender, and who hears about new subscribers, both set in
+         wrangler.jsonc `vars` and read at runtime too. */
       EMAIL_FROM: envField.string({ context: "server", access: "secret", optional: true }),
+      NOTIFY_EMAIL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
   integrations: [

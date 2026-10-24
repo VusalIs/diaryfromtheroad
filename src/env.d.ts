@@ -7,3 +7,10 @@
 declare module "cloudflare:workers" {
   export const env: Readonly<Record<string, unknown>>;
 }
+
+/* The Cloudflare adapter sets this on requests rendered by the Worker. */
+declare namespace App {
+  interface Locals {
+    cfContext?: { waitUntil(promise: Promise<unknown>): void };
+  }
+}

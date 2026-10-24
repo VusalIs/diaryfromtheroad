@@ -3,7 +3,7 @@ import PageHeader from "@/components/ui/PageHeader.astro";
 import { siteConfig } from "@/config/site";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { confirmSubscription, isToken, readForm } from "@/lib/subscriptions";
-import { getSubscribersDb } from "@/lib/subscriptions-env";
+import { getOwnerNotifier, getSubscribersDb } from "@/lib/subscriptions-env";
 
 /* Rendered on request. Opening the emailed link only shows a button: confirming takes a POST,
    so mail scanners that follow links can't subscribe someone on their own. */
@@ -23,10 +23,21 @@ let state: "ask" | "confirmed" | "invalid" | "closed" | "error" = !db
 if (db && Astro.request.method === "POST") {
   const form = await readForm(Astro.request);
   token = form?.get("token") ?? token;
+  // The note to the owner goes out after the response, so it never delays or blocks confirming.
+  const notify = getOwnerNotifier(db);
+  let note: Promise<void> | undefined;
   try {
-    state = await confirmSubscription(token, { db });
+    state = await confirmSubscription(token, {
+      db,
+      onConfirmed: notify && ((email) => (note = notify(email))),
+    });
   } catch {
     state = "error";
+  }
+  if (note) {
+    const cfContext = Astro.locals.cfContext;
+    if (cfContext) cfContext.waitUntil(note);
+    else await note;
   }
 }
 

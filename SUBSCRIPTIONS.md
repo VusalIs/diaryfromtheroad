@@ -29,6 +29,10 @@ One row per address in the `subscribers` table: the address, its status (`pendin
 
 Unconfirmed addresses are deleted by the next sign-up after their 48-hour link expires.
 
+### New-subscriber notes
+
+When someone confirms, the site emails `NOTIFY_EMAIL` (set in `wrangler.jsonc` `vars`, now `hello@diaryfromtheroad.com`, which Cloudflare Email Routing forwards to your inbox): "New subscriber: name@example.com", with the number of active subscribers. It goes out through Resend after the reader already sees "You're subscribed", so a failed note is only logged and never affects the subscription. Set `NOTIFY_EMAIL` to `""` to turn the notes off.
+
 ## When sign-up opens
 
 In production, sign-up opens only when all of these hold. If any is missing, the endpoint answers 503 without storing anything and logs which ones, by name and never by value (`npx wrangler tail` shows the log):

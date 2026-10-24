@@ -14,6 +14,7 @@ import {
   normalizeEmail,
   parseSender,
   signupProblems,
+  subscriberNotification,
   unsubscribe,
   verifyTurnstile,
   type EmailMessage,
@@ -606,5 +607,79 @@ describe("configuration checks", () => {
       }),
       "1x00000000000000000000AA",
     );
+  });
+});
+
+describe("new-subscriber notes", () => {
+  it("reports each confirmation once, with the address, and never a reused or expired link", async () => {
+    const t = setup();
+    await t.signUp("Reader@Example.com");
+    const token = t.confirmLink();
+    const confirmed: string[] = [];
+    const onConfirmed = (email: string) => confirmed.push(email);
+
+    assert.equal(
+      await confirmSubscription(token, { db: t.db, now: t.now, onConfirmed }),
+      "confirmed",
+    );
+    assert.equal(
+      await confirmSubscription(token, { db: t.db, now: t.now, onConfirmed }),
+      "invalid",
+    );
+    assert.equal(
+      await confirmSubscription("abc", { db: t.db, now: t.now, onConfirmed }),
+      "invalid",
+    );
+    assert.deepEqual(confirmed, ["reader@example.com"]);
+
+    await t.signUp("late@example.com");
+    t.advance(CONFIRMATION_TTL + 1000);
+    assert.equal(
+      await confirmSubscription(t.confirmLink(), { db: t.db, now: t.now, onConfirmed }),
+      "invalid",
+    );
+    assert.deepEqual(confirmed, ["reader@example.com"]);
+  });
+
+  it("writes a short note naming the subscriber and the active count", () => {
+    const note = subscriberNotification({
+      to: "hello@diary.test",
+      siteName: "Diary From the Road",
+      email: "reader@example.com",
+      activeCount: 3,
+    });
+    assert.equal(note.to, "hello@diary.test");
+    assert.equal(note.subject, "New subscriber: reader@example.com");
+    assert.match(
+      note.text,
+      /reader@example\.com just confirmed a subscription to Diary From the Road\./,
+    );
+    assert.match(note.text, /Active subscribers: 3/);
+    assert.equal(note.unsubscribeUrl, undefined);
+  });
+
+  it("sends the note through Resend without unsubscribe headers", async () => {
+    let body: Record<string, unknown> = {};
+    const resend: typeof fetch = async (_url, init) => {
+      body = JSON.parse(String(init?.body));
+      return Response.json({ id: "4ef9a417-02e9-4d39-ad75-9611e0fcc33c" });
+    };
+    const send = createResendSender({
+      apiKey: "re_test_key",
+      from: "Diary <hello@diary.test>",
+      fetch: resend,
+    });
+    await send(
+      subscriberNotification({
+        to: "hello@diary.test",
+        siteName: "Diary",
+        email: "reader@example.com",
+        activeCount: 1,
+      }),
+    );
+
+    assert.deepEqual(body.to, ["hello@diary.test"]);
+    assert.equal(body.subject, "New subscriber: reader@example.com");
+    assert.equal("headers" in body, false);
   });
 });

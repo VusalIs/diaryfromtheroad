@@ -23,5 +23,7 @@
     // The sender for confirmation emails, on diaryfromtheroad.com, which is verified in Resend.
     // Secrets (TURNSTILE_SECRET_KEY, RESEND_API_KEY) are set with `wrangler secret put`, never here.
     "EMAIL_FROM": "Diary From the Road <hello@diaryfromtheroad.com>",
+    // Gets a short email whenever someone confirms. Empty turns the notes off.
+    "NOTIFY_EMAIL": "hello@diaryfromtheroad.com",
   },
 }

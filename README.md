@@ -147,7 +147,7 @@ It runs `astro check`, the tests, the production build, and Prettier's check, an
 
 ## Deployment
 
-The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`). It also binds the subscriber database (`SUBSCRIBERS_DB`, the D1 database `diary-subscribers`). Secrets are never in the file.
+The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`) and the address told about new subscribers (`NOTIFY_EMAIL`). It also binds the subscriber database (`SUBSCRIBERS_DB`, the D1 database `diary-subscribers`). Secrets are never in the file.
 
 ```bash
 npm run build
