@@ -1,10 +1,20 @@
 ---
+import { PUBLIC_TURNSTILE_SITE_KEY } from "astro:env/client";
+import SubscribeForm from "@/components/blog/SubscribeForm.astro";
 import PageHeader from "@/components/ui/PageHeader.astro";
 import { siteConfig } from "@/config/site";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { withBreadcrumbs } from "@/lib/schema";
+import { formSiteKey } from "@/lib/subscriptions";
 
 const crumbs = [{ label: "Home", href: "/" }, { label: "About" }];
+/* The weekly-map sign-up, once it is configured and enabled (SUBSCRIPTIONS.md). */
+const subscribeSiteKey = formSiteKey({
+  siteKey: PUBLIC_TURNSTILE_SITE_KEY,
+  production: import.meta.env.PROD,
+  enabled: siteConfig.subscriptions.enabled,
+  siteUrl: siteConfig.siteUrl,
+});
 ---
 
 <BaseLayout
@@ -22,35 +32,62 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "About" }];
   />
 
   <div class="shell">
-    <div class="prose-article max-w-[37rem]">
-      <p>
-        {siteConfig.name} is where I write down what that actually looks like: where I go, how I get
-        around, what things cost, and what I'm building alongside my job.
-      </p>
-      <p>
-        I'm not doing this on a big budget. I earn an ordinary remote salary, and part of the point
-        is to find out how far it goes: which places work, what a month really costs, and where the
-        money goes.
-      </p>
-      <p>Expect posts about:</p>
-      <ul>
-        <li>travelling and living in different parts of Southeast Asia</li>
-        <li>spending breakdowns and the real cost of living</li>
-        <li>exploring by motorcycle</li>
-        <li>working remotely while moving around</li>
-        <li>
-          the software and small projects I'm building to earn something beyond my salary, including
-          the ones that don't work out
-        </li>
-      </ul>
-      <p>
-        Some posts will be practical. Others will just be about the experience. I'd rather write
-        things down as they happen, numbers and loose ends included, than wait until everything
-        looks tidy.
-      </p>
-      <p>
-        If you want to say hello, my <a href="/contact/">contact page</a> has the links.
-      </p>
+    <div class="max-w-[37rem]">
+      <div class="prose-article">
+        <p>
+          {siteConfig.name} is where I write down what that actually looks like: where I go, how I
+          get around, what things cost, and what I'm building alongside my job.
+        </p>
+        <p>
+          I'm not doing this on a big budget. I earn an ordinary remote salary, and part of the
+          point is to find out how far it goes: which places are worth spending time in, what
+          everyday life really costs, and what there is to see and do beyond the usual tourist
+          route. I'm working that out as I go, not writing as someone who already knows.
+        </p>
+
+        <h2>What I write about</h2>
+        <ul>
+          <li>
+            <strong>Places worth discovering.</strong> Interesting experiences, places that are easy
+            to miss, and trips by motorcycle.
+          </li>
+          <li>
+            <strong>The real cost of life on the road.</strong> Spending breakdowns for
+            accommodation, food, and transport, and the trade-offs behind them.
+          </li>
+          <li>
+            <strong>Working remotely.</strong> What it's like to do a regular job while living
+            somewhere new.
+          </li>
+          <li>
+            <strong>Things I'm building.</strong> Software and small projects outside my job, which
+            I hope will earn something beyond my salary one day, including the ones that don't work
+            out.
+          </li>
+        </ul>
+
+        <p>
+          If you're planning a trip to Southeast Asia, you might find realistic numbers here and a
+          few places worth adding to your list. If you work remotely, you might get a sense of what
+          your own job could make possible. Or you might just like reading an honest account of
+          someone testing how far their circumstances stretch. My situation won't match yours
+          exactly, so not everything here will apply to you.
+        </p>
+        <p>
+          I'd rather write things down as they happen, numbers and loose ends included, than wait
+          until everything looks tidy.
+        </p>
+        {subscribeSiteKey && (
+          <p>
+            I'm also starting a weekly map of places I come across, as a list you can save in Google
+            Maps. The <a href="#subscribe-title">sign-up</a> is at the bottom of this page.
+          </p>
+        )}
+        <p>
+          If you want to say hello, my <a href="/contact/">contact page</a> has the links.
+        </p>
+      </div>
+      {subscribeSiteKey && <SubscribeForm siteKey={subscribeSiteKey} />}
     </div>
   </div>
 </BaseLayout>
