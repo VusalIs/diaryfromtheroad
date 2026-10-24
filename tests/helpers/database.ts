@@ -1,11 +1,13 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import type { Database, Statement } from "../../src/lib/subscriptions.ts";
 
-const migration = readFileSync(
-  new URL("../../migrations/0001_create_subscribers.sql", import.meta.url),
-  "utf8",
-);
+const migrationsDir = new URL("../../migrations/", import.meta.url);
+/** Every D1 migration, in the order Wrangler applies them. */
+const migrations = readdirSync(migrationsDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => readFileSync(new URL(name, migrationsDir), "utf8"));
 
 class SqliteStatement implements Statement {
   readonly #sqlite: DatabaseSync;
@@ -32,9 +34,11 @@ class SqliteStatement implements Statement {
   }
 }
 
-/** An in-memory SQLite database with the D1 migration applied, behind the part of D1's API the code uses. */
-export function createDatabase(): Database & { sqlite: DatabaseSync } {
+/** An in-memory SQLite database with the D1 migrations applied, behind the part of D1's API the code uses. */
+export function createDatabase({ upTo }: { upTo?: number } = {}): Database & {
+  sqlite: DatabaseSync;
+} {
   const sqlite = new DatabaseSync(":memory:");
-  sqlite.exec(migration);
+  for (const migration of migrations.slice(0, upTo)) sqlite.exec(migration);
   return { sqlite, prepare: (query) => new SqliteStatement(sqlite, query) };
 }

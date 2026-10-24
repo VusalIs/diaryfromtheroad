@@ -29,7 +29,7 @@ const id = (name: string) => `${idPrefix}-${name}`;
       maxlength="254"
       spellcheck="false"
       required
-      aria-describedby={`${id("error")} ${id("note")}`}
+      aria-describedby={`${id("error")} ${id("suggestion")} ${id("note")}`}
     />
     <button
       type="submit"
@@ -39,6 +39,13 @@ const id = (name: string) => `${idPrefix}-${name}`;
     </button>
   </div>
   <p id={id("error")} class="mt-2 text-sm text-accent" hidden data-subscribe-error></p>
+  {/* Offers a fix for a likely typo in a common provider, such as gmial.com. */}
+  <div aria-live="polite">
+    <p id={id("suggestion")} class="mt-2 text-sm text-muted" hidden data-subscribe-suggestion>
+      Did you mean{" "}
+      <button type="button" class="text-link font-medium" data-subscribe-suggestion-apply></button>?
+    </p>
+  </div>
   <div data-subscribe-widget></div>
   <p id={id("note")} class="mt-3 text-sm text-muted">
     <slot />
@@ -47,6 +54,8 @@ const id = (name: string) => `${idPrefix}-${name}`;
 </form>
 
 <script>
+  import { suggestEmail } from "@/lib/email-checks";
+
   interface Turnstile {
     render(container: HTMLElement, options: Record<string, unknown>): string | undefined;
     execute(widget: string): void;
@@ -92,7 +101,9 @@ const id = (name: string) => `${idPrefix}-${name}`;
     const error = form.querySelector<HTMLElement>("[data-subscribe-error]");
     const status = form.querySelector<HTMLElement>("[data-subscribe-status]");
     const container = form.querySelector<HTMLElement>("[data-subscribe-widget]");
-    if (!input || !button || !error || !status || !container) return;
+    const suggestion = form.querySelector<HTMLElement>("[data-subscribe-suggestion]");
+    const apply = form.querySelector<HTMLButtonElement>("[data-subscribe-suggestion-apply]");
+    if (!input || !button || !error || !status || !container || !suggestion || !apply) return;
 
     let turnstile: Turnstile | undefined;
     let widget: string | undefined;
@@ -146,6 +157,21 @@ const id = (name: string) => `${idPrefix}-${name}`;
     };
 
     input.addEventListener("focus", () => void loadTurnstile().catch(() => {}), { once: true });
+
+    /* Offered when the reader leaves the field, never forced: the address may be right. */
+    const suggest = () => {
+      const fix = input.checkValidity() ? suggestEmail(input.value.trim()) : undefined;
+      apply.textContent = fix ?? "";
+      suggestion.hidden = !fix;
+    };
+    input.addEventListener("blur", suggest);
+    input.addEventListener("input", () => (suggestion.hidden = true));
+    apply.addEventListener("click", () => {
+      input.value = apply.textContent ?? input.value;
+      suggestion.hidden = true;
+      setError("");
+      input.focus();
+    });
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();

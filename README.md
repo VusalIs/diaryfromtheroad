@@ -2,7 +2,7 @@
 
 A personal journal about travel in Southeast Asia, motorcycles, money, remote work, and building software, with a page for the apps built along the way.
 
-Posts and apps are Markdown or MDX files in Astro content collections, settings live in a few TypeScript config files, and every page is prerendered. The only server code is the email sign-up, which runs on Cloudflare Workers with a D1 database and sends its confirmation emails through Resend; there is no CMS.
+Posts and apps are Markdown or MDX files in Astro content collections, settings live in a few TypeScript config files, and every page is prerendered. The only server code is the email sign-up, which runs on Cloudflare Workers with a D1 database and sends its welcome emails through Resend; there is no CMS.
 
 ## What's on the site
 
@@ -12,13 +12,13 @@ Posts and apps are Markdown or MDX files in Astro content collections, settings 
 - **Apps** (`/apps/`): every app on one page, one section per app
 - **About** (`/about/`), **Contact** (`/contact/`, links to the profiles in the site config; no form), and **Privacy** (`/privacy/`, what the site does with visitors' information)
 - A search palette on every page (`Ctrl/⌘ + K` or `/`), light and dark modes, and the RSS feed at `/rss.xml`
-- Email sign-up for the weekly map (a Google Maps list of places, once a week), at the end of each post and in a popup that opens once per visit at most, with double opt-in (Cloudflare D1, Turnstile, and Resend). See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)
+- Email sign-up for the weekly map (a Google Maps list of places, once a week), at the end of each post, on the About page, and in a popup that opens once per visit at most. Readers are subscribed straight away and get a welcome email (Cloudflare D1, Turnstile, and Resend). See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)
 
 ## Stack
 
 - [Astro](https://astro.build/) 7 with `@astrojs/mdx`; pages are prerendered
 - `@astrojs/cloudflare` and Wrangler: the site deploys as a Cloudflare Worker, which serves the pages and runs the email sign-up routes
-- Cloudflare D1 for subscribers, Cloudflare Turnstile against spam sign-ups, and Resend's HTTP API for confirmation emails (no SDK)
+- Cloudflare D1 for subscribers, Cloudflare Turnstile against spam sign-ups, and Resend's HTTP API for welcome emails and bounce reports (no SDK)
 - Tailwind CSS 4 through `@tailwindcss/vite`
 - TypeScript, with content collections validated by Zod schemas
 - `@astrojs/rss`, `@astrojs/sitemap`, and Sharp for image optimization
@@ -62,7 +62,7 @@ The email sign-up needs a little local setup to try out; see [Local development 
 | `src/content.config.ts`  | The schemas for both collections                                           |
 | `src/pages/`             | Routes                                                                     |
 | `src/styles/global.css`  | Design tokens, light and dark                                              |
-| `src/lib/subscriptions*` | Email sign-up, confirmation, and unsubscribe                               |
+| `src/lib/subscriptions*` | Email sign-up, welcome emails, unsubscribe, and bounce reports             |
 | `migrations/`            | The D1 database schema                                                     |
 | `tests/`                 | Tests for the email subscription logic                                     |
 

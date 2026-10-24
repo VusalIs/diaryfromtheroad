@@ -42,34 +42,31 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
 
       <h2>Email subscriptions</h2>
       <p>
-        If you sign up for the weekly map, in that box or at the end of a post, the subscriber list
-        keeps:
+        If you sign up for the weekly map, in that box, on the About page, or at the end of a post,
+        the subscriber list keeps:
       </p>
       <ul>
         <li>your email address;</li>
-        <li>
-          whether you are waiting to confirm, subscribed, or unsubscribed, and when each of those
-          happened;
-        </li>
-        <li>
-          two random codes for the links in your emails: one to confirm, stored only in scrambled
-          (hashed) form, and one to unsubscribe.
-        </li>
+        <li>whether you are subscribed or have left the list, and when;</li>
+        <li>a random code for the unsubscribe link in your emails.</li>
       </ul>
       <p>
         Nothing else is stored with it: no name and no IP address. It is used only to send you the
         weekly map: one email a week with a Google Maps list of places I've found on the road.
       </p>
       <p>
-        You are only subscribed once you open the link in the confirmation email and press Confirm.
-        The link works for 48 hours. If you don't confirm, nothing more is sent unless the address
-        is entered in the form again. Unconfirmed addresses are deleted automatically after their
-        link expires, at the next sign-up by anyone.
+        You are subscribed as soon as you enter your address, and a welcome email goes out straight
+        away. Before the address is stored, two checks keep mistakes off the list: addresses from
+        temporary inbox services are turned away, and the part after the @ is looked up in DNS to
+        make sure it can receive email.
       </p>
       <p>
-        Every email includes a link to unsubscribe. Open it and press Unsubscribe, and no more
-        emails are sent. Your address then stays on the list marked as unsubscribed, so it isn't
-        emailed again by mistake. To have it deleted completely, <a href="/contact/">contact me</a>.
+        Every email, the welcome email included, has a link to unsubscribe. If someone else entered
+        your address, that link takes it off the list too. Open it and press Unsubscribe, and no
+        more emails are sent. Your address then stays on the list marked as unsubscribed, so it
+        isn't emailed again by mistake. If an email to your address bounces for good, or you mark
+        one as spam, the address is marked that way instead and never emailed again. To have it
+        deleted completely, <a href="/contact/">contact me</a>.
       </p>
 
       <h2>Who handles it</h2>
@@ -78,15 +75,18 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "Privacy" }];
           <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a> hosts the site and
           stores the subscriber list. To deliver the pages, it handles the requests your browser
           makes, including your IP address. When you use the sign-up form, its Turnstile check looks
-          at your IP address and browser to tell people from bots.
+          at your IP address and browser to tell people from bots, and its DNS service answers the
+          lookup of your email's domain.
         </li>
         <li>
-          <a href="https://resend.com/legal/privacy-policy">Resend</a> sends the confirmation email,
-          and a short note to me when someone confirms, so it handles your address to deliver them.
+          <a href="https://resend.com/legal/privacy-policy">Resend</a> sends the welcome email, and
+          a short note to me when someone subscribes, so it handles your address to deliver them. It
+          also tells the site when an email bounces or is marked as spam, so that address can be
+          taken off the list.
         </li>
       </ul>
       <p>
-        The list is kept by {siteConfig.author.name}, who writes this journal. When you confirm,
+        The list is kept by {siteConfig.author.name}, who writes this journal. When you subscribe,
         that note with your address arrives in my own inbox. Each service works under its own
         privacy policy.
       </p>

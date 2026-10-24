@@ -1,11 +1,19 @@
 /**
  * Connects src/lib/subscriptions.ts to the Worker: the D1 binding, the Turnstile and Resend
- * secrets, the sender address, and the address that hears about new subscribers. Import it only
- * from routes rendered on request (`export const prerender = false`).
+ * secrets, the sender address, the address that hears about new subscribers, and the Resend
+ * webhook's signing secret. Import it only from routes rendered on request
+ * (`export const prerender = false`).
  */
-import { EMAIL_FROM, NOTIFY_EMAIL, RESEND_API_KEY, TURNSTILE_SECRET_KEY } from "astro:env/server";
+import {
+  EMAIL_FROM,
+  NOTIFY_EMAIL,
+  RESEND_API_KEY,
+  RESEND_WEBHOOK_SECRET,
+  TURNSTILE_SECRET_KEY,
+} from "astro:env/server";
 import { env } from "cloudflare:workers";
 import { siteConfig } from "@/config/site";
+import { checkMailDomain } from "@/lib/email-checks";
 import {
   createResendSender,
   normalizeEmail,
@@ -63,6 +71,9 @@ export function getSignupSetup(requestUrl: URL) {
   return {
     db,
     sendEmail,
+    siteName: siteConfig.name,
+    author: siteConfig.author.name,
+    checkDomain: (domain: string) => checkMailDomain(domain),
     turnstileSecret: TURNSTILE_SECRET_KEY,
     // Production only answers requests from siteUrl, so links and the Turnstile check use it.
     origin: production ? site.origin : requestUrl.origin,
@@ -71,9 +82,9 @@ export function getSignupSetup(requestUrl: URL) {
 }
 
 /**
- * Emails NOTIFY_EMAIL when someone confirms, with the number of active subscribers, or
+ * Emails NOTIFY_EMAIL when someone subscribes, with the number of active subscribers, or
  * `undefined` when NOTIFY_EMAIL isn't set. A failed note is only logged: the subscription itself
- * is already confirmed.
+ * already stands.
  */
 export function getOwnerNotifier(db: Database) {
   const to = normalizeEmail(NOTIFY_EMAIL);
@@ -98,4 +109,19 @@ export function getOwnerNotifier(db: Database) {
       );
     }
   };
+}
+
+/**
+ * What the Resend webhook needs, or `undefined` while it can't run: without RESEND_WEBHOOK_SECRET
+ * no request could be verified, so none is trusted.
+ */
+export function getWebhookSetup() {
+  const db = getSubscribersDb();
+  if (!db || !RESEND_WEBHOOK_SECRET) {
+    console.warn(
+      `[subscriptions] The Resend webhook is off: ${!db ? "the SUBSCRIBERS_DB binding is missing" : "the RESEND_WEBHOOK_SECRET secret is missing"}.`,
+    );
+    return undefined;
+  }
+  return { db, secret: RESEND_WEBHOOK_SECRET };
 }

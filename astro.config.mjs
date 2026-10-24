@@ -90,6 +90,12 @@ export default defineConfig({
         optional: true,
       }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      /* Verifies the bounce and spam-report webhook from Resend (SUBSCRIPTIONS.md). */
+      RESEND_WEBHOOK_SECRET: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+      }),
       /* Not secrets: the verified sender, and who hears about new subscribers, both set in
          wrangler.jsonc `vars` and read at runtime too. */
       EMAIL_FROM: envField.string({ context: "server", access: "secret", optional: true }),
@@ -104,7 +110,6 @@ export default defineConfig({
         !page.endsWith(".xml") &&
         !page.endsWith(".txt") &&
         // Reached only from links in emails.
-        !page.endsWith("/subscribe/confirm/") &&
         !page.endsWith("/unsubscribe/") &&
         indexable.includes(page),
     }),

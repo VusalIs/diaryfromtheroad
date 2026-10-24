@@ -4,7 +4,7 @@
 # Cloudflare's Turnstile test secret, which always passes. Production refuses test keys.
 TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 
-# Optional. Leave both empty and confirmation emails are printed in the terminal instead of sent.
+# Optional. Leave both empty and welcome emails are printed in the terminal instead of sent.
 # To try Resend locally, use a Resend API key and a sender on a domain verified in Resend.
 RESEND_API_KEY=
 EMAIL_FROM=

@@ -89,8 +89,7 @@ const perks = [
           </p>
           <div class="mt-6">
             <SubscribeFields siteKey={siteKey} idPrefix="newsletter" buttonLabel="Send me the map">
-              One email a week. Free, and you can unsubscribe anytime. You'll confirm your address
-              by email first.{" "}
+              One email a week. Free, and every email has a link to unsubscribe.{" "}
               <a href="/privacy/" class="text-link">
                 How your address is kept
               </a>
@@ -109,13 +108,14 @@ const perks = [
             tabindex="-1"
             data-newsletter-done-title
           >
-            Check your inbox.
+            Thanks for signing up.
           </h2>
           <p class="mt-3 text-body" data-newsletter-done-message>
             {messages.accepted}
           </p>
           <p class="mt-2 text-sm text-muted">
-            Once you confirm, the map arrives with the next weekly email.
+            The map arrives with the next weekly email. If the welcome email doesn't show up, check
+            your spam folder.
           </p>
           <button type="button" class="btn btn-quiet mt-6" data-newsletter-close>
             Close

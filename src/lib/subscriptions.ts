@@ -1,11 +1,13 @@
 /**
- * Email subscriptions with double opt-in, stored in Cloudflare D1 (see SUBSCRIPTIONS.md).
+ * Email subscriptions with single opt-in, stored in Cloudflare D1 (see SUBSCRIPTIONS.md): an
+ * address is subscribed as soon as it is entered, and gets a welcome email with a link to leave.
  *
  * Everything here takes its database, email sender, and clock as arguments and imports nothing
  * from Astro or Cloudflare, so the tests run it in Node against SQLite.
  * src/lib/subscriptions-env.ts connects it to the Worker's bindings.
  */
 import { z } from "astro/zod";
+import { isDisposableEmail, type DomainCheck } from "./email-checks.ts";
 
 /** The part of D1's `D1Database` binding used here. */
 export interface Database {
@@ -28,19 +30,20 @@ export interface EmailMessage {
 
 export type SendEmail = (message: EmailMessage) => Promise<void>;
 
-type Status = "pending" | "active" | "unsubscribed";
+type Status = "active" | "unsubscribed" | "bounced" | "complained";
 
 const HOUR = 60 * 60 * 1000;
-/** How long a confirmation link works. Unconfirmed addresses are deleted after this. */
-export const CONFIRMATION_TTL = 48 * HOUR;
-/** An address gets at most one confirmation email per hour, however often it is submitted. */
-export const CONFIRMATION_COOLDOWN = HOUR;
-/** Confirmation emails sent per hour across the whole site before sign-up pauses. */
+/** An address gets at most one welcome email per hour, however often it is submitted. */
+export const WELCOME_COOLDOWN = HOUR;
+/** Welcome emails sent per hour across the whole site before sign-up pauses. */
 export const HOURLY_EMAIL_LIMIT = 30;
+/** How old a webhook's timestamp may be before the request is treated as a replay. */
+export const WEBHOOK_TOLERANCE = 5 * 60 * 1000;
 /** The widget's `action`, checked again on the server. */
 export const TURNSTILE_ACTION = "subscribe";
 
 const MAX_BODY_BYTES = 4096;
+const MAX_WEBHOOK_BYTES = 64 * 1024;
 const MAX_TURNSTILE_TOKEN = 2048;
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const RESEND_URL = "https://api.resend.com/emails";
@@ -50,13 +53,15 @@ const TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const emailSchema = z.email().max(254);
 
 export const messages = {
-  accepted:
-    "Thanks. If this address isn't subscribed yet, you'll get an email with a link to confirm it.",
+  accepted: "You're on the list. If you weren't already, a welcome email is on its way.",
   invalidEmail: "Enter a valid email address.",
+  disposableEmail: "Please use an address you'll keep. Temporary inboxes stop working too soon.",
+  missingDomain: "That email domain doesn't seem to exist. Check the address for typos.",
+  noMailDomain: "That domain can't receive email. Check the address for typos.",
   verificationFailed: "The spam check didn't pass. Please try again.",
   badRequest: "That request couldn't be processed.",
   busy: "Too many sign-ups right now. Please try again in an hour.",
-  sendFailed: "The confirmation email couldn't be sent. Please try again later.",
+  sendFailed: "The welcome email couldn't be sent. Please try again later.",
   closed: "Email sign-up isn't open yet.",
   error: "Something went wrong. Please try again later.",
 } as const;
@@ -75,11 +80,6 @@ export function createToken(): string {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-}
-
-export async function hashToken(token: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function isToken(value: unknown): value is string {
@@ -131,24 +131,33 @@ export function createResendSender({
   };
 }
 
-export function confirmationEmail(
-  to: string,
-  siteName: string,
-  confirmUrl: string,
-  unsubscribeUrl: string,
-): EmailMessage {
+export function welcomeEmail({
+  to,
+  siteName,
+  author,
+  origin,
+  unsubscribeUrl,
+}: {
+  to: string;
+  siteName: string;
+  /** Signs the email. */
+  author: string;
+  origin: string;
+  unsubscribeUrl: string;
+}): EmailMessage {
   return {
     to,
-    subject: `Confirm your subscription to ${siteName}`,
+    subject: `You're on the list for the weekly map from ${siteName}`,
     text: [
-      `Someone, hopefully you, asked to get the weekly map from ${siteName}: one email a week with a Google Maps list of places worth finding on the road.`,
+      `Thanks for signing up for the weekly map from ${siteName}.`,
       "",
-      "Confirm your subscription (the link works for 48 hours):",
-      confirmUrl,
+      "Once a week I'll send a Google Maps list of places I've found on the road: viewpoints, cafés that are good for working, cheap local food, and things worth a detour. The first one comes with the next weekly email.",
       "",
-      "If you didn't ask for this, ignore this email and you won't be subscribed.",
+      "If you didn't sign up, someone else entered your address. Open this link and you won't get any more emails:",
+      unsubscribeUrl,
       "",
-      `Unsubscribe at any time: ${unsubscribeUrl}`,
+      author,
+      `${siteName}, ${new URL("/", origin).toString()}`,
     ].join("\n"),
     unsubscribeUrl,
   };
@@ -160,127 +169,95 @@ interface SubscribeOptions {
   /** The site's origin, for the links in the email. */
   origin: string;
   siteName: string;
+  /** Signs the welcome email. */
+  author: string;
   now?: Date;
+  /** Called with the address once it has joined the list and its welcome email has gone out. */
+  onSubscribed?: (email: string) => void;
 }
 
 /**
- * Records a sign-up as pending and sends the confirmation email. The result is the same whether
- * the address is new, pending, or already subscribed, so a response never reveals who is subscribed.
+ * Adds the address to the list and sends the welcome email. The result is the same whether the
+ * address is new or already subscribed, so a response never reveals who is subscribed. An address
+ * that unsubscribed can sign up again; one that bounced or reported spam is never added back.
  */
 export async function subscribe(
   email: string,
-  { db, sendEmail, origin, siteName, now = new Date() }: SubscribeOptions,
+  { db, sendEmail, origin, siteName, author, now = new Date(), onSubscribed }: SubscribeOptions,
 ): Promise<"accepted" | "busy" | "failed"> {
   const at = now.toISOString();
   const ago = (ms: number) => new Date(now.getTime() - ms).toISOString();
 
-  // Nobody confirmed these, so they are not kept once their link has expired.
-  await db
-    .prepare(
-      "DELETE FROM subscribers WHERE status = 'pending' AND (confirmation_sent_at IS NULL OR confirmation_sent_at < ?)",
-    )
-    .bind(ago(CONFIRMATION_TTL))
-    .run();
-
   const existing = await db
     .prepare(
-      "SELECT status, confirmation_sent_at, unsubscribe_token FROM subscribers WHERE email = ?",
+      "SELECT status, subscribed_at, welcome_sent_at, unsubscribe_token, unsubscribed_at FROM subscribers WHERE email = ?",
     )
     .bind(email)
-    .first<{ status: Status; confirmation_sent_at: string | null; unsubscribe_token: string }>();
-  if (existing?.status === "active") return "accepted";
-  if (
-    existing?.confirmation_sent_at &&
-    existing.confirmation_sent_at > ago(CONFIRMATION_COOLDOWN)
-  ) {
+    .first<{
+      status: Status;
+      subscribed_at: string;
+      welcome_sent_at: string | null;
+      unsubscribe_token: string;
+      unsubscribed_at: string | null;
+    }>();
+  if (existing && existing.status !== "unsubscribed") return "accepted";
+  if (existing?.welcome_sent_at && existing.welcome_sent_at > ago(WELCOME_COOLDOWN)) {
     return "accepted";
   }
 
   const recent = await db
-    .prepare("SELECT COUNT(*) AS count FROM subscribers WHERE confirmation_sent_at > ?")
+    .prepare("SELECT COUNT(*) AS count FROM subscribers WHERE welcome_sent_at > ?")
     .bind(ago(HOUR))
     .first<{ count: number }>();
   if ((recent?.count ?? 0) >= HOURLY_EMAIL_LIMIT) return "busy";
 
-  const token = createToken();
-  const tokenHash = await hashToken(token);
   let unsubscribeToken: string;
   let undo: Statement;
   if (existing) {
     const updated = await db
       .prepare(
-        `UPDATE subscribers SET status = 'pending', confirmation_token_hash = ?, confirmation_sent_at = ?
-         WHERE email = ? AND status = ? AND (confirmation_sent_at IS NULL OR confirmation_sent_at <= ?)`,
+        `UPDATE subscribers SET status = 'active', subscribed_at = ?, welcome_sent_at = ?, unsubscribed_at = NULL
+         WHERE email = ? AND status = 'unsubscribed' AND (welcome_sent_at IS NULL OR welcome_sent_at <= ?)`,
       )
-      .bind(tokenHash, at, email, existing.status, ago(CONFIRMATION_COOLDOWN))
+      .bind(at, at, email, ago(WELCOME_COOLDOWN))
       .run();
     // A simultaneous request for the same address got there first and sent the email.
     if (updated.meta.changes === 0) return "accepted";
     unsubscribeToken = existing.unsubscribe_token;
     undo = db
       .prepare(
-        "UPDATE subscribers SET status = ?, confirmation_token_hash = NULL, confirmation_sent_at = NULL WHERE confirmation_token_hash = ?",
+        "UPDATE subscribers SET status = 'unsubscribed', subscribed_at = ?, welcome_sent_at = ?, unsubscribed_at = ? WHERE email = ?",
       )
-      .bind(existing.status, tokenHash);
+      .bind(existing.subscribed_at, existing.welcome_sent_at, existing.unsubscribed_at, email);
   } else {
     unsubscribeToken = createToken();
     const inserted = await db
       .prepare(
-        `INSERT INTO subscribers (email, status, created_at, confirmation_token_hash, confirmation_sent_at, unsubscribe_token)
-         VALUES (?, 'pending', ?, ?, ?, ?) ON CONFLICT (email) DO NOTHING`,
+        `INSERT INTO subscribers (email, status, created_at, subscribed_at, welcome_sent_at, unsubscribe_token)
+         VALUES (?, 'active', ?, ?, ?, ?) ON CONFLICT (email) DO NOTHING`,
       )
-      .bind(email, at, tokenHash, at, unsubscribeToken)
+      .bind(email, at, at, at, unsubscribeToken)
       .run();
     if (inserted.meta.changes === 0) return "accepted";
-    undo = db.prepare("DELETE FROM subscribers WHERE confirmation_token_hash = ?").bind(tokenHash);
+    undo = db.prepare("DELETE FROM subscribers WHERE unsubscribe_token = ?").bind(unsubscribeToken);
   }
 
-  const confirmUrl = new URL(`/subscribe/confirm/?token=${token}`, origin).toString();
   const unsubscribeUrl = new URL(`/unsubscribe/?token=${unsubscribeToken}`, origin).toString();
   try {
-    await sendEmail(confirmationEmail(email, siteName, confirmUrl, unsubscribeUrl));
+    await sendEmail(welcomeEmail({ to: email, siteName, author, origin, unsubscribeUrl }));
   } catch (error) {
-    // The link never arrived, so the sign-up is rolled back rather than kept unconfirmable.
+    // Resend refusing the email is the first sign of a bad address, so the sign-up is undone.
     console.error(
-      `[subscriptions] The confirmation email wasn't sent: ${error instanceof Error ? error.message : "unknown error"}`,
+      `[subscriptions] The welcome email wasn't sent: ${error instanceof Error ? error.message : "unknown error"}`,
     );
     await undo.run();
     return "failed";
   }
+  onSubscribed?.(email);
   return "accepted";
 }
 
-/**
- * Marks a pending sign-up as confirmed. Each link works once, within CONFIRMATION_TTL.
- * `onConfirmed` is called with the address once it is confirmed, never on a reused or expired link.
- */
-export async function confirmSubscription(
-  token: string,
-  {
-    db,
-    now = new Date(),
-    onConfirmed,
-  }: { db: Database; now?: Date; onConfirmed?: (email: string) => void },
-): Promise<"confirmed" | "invalid"> {
-  if (!isToken(token)) return "invalid";
-  const confirmed = await db
-    .prepare(
-      `UPDATE subscribers SET status = 'active', confirmed_at = ?, confirmation_token_hash = NULL, unsubscribed_at = NULL
-       WHERE confirmation_token_hash = ? AND status = 'pending' AND confirmation_sent_at > ?
-       RETURNING email`,
-    )
-    .bind(
-      now.toISOString(),
-      await hashToken(token),
-      new Date(now.getTime() - CONFIRMATION_TTL).toISOString(),
-    )
-    .first<{ email: string }>();
-  if (!confirmed) return "invalid";
-  onConfirmed?.(confirmed.email);
-  return "confirmed";
-}
-
-/** The note to the site's owner when someone confirms. */
+/** The note to the site's owner when someone subscribes. */
 export function subscriberNotification({
   to,
   siteName,
@@ -296,7 +273,7 @@ export function subscriberNotification({
     to,
     subject: `New subscriber: ${email}`,
     text: [
-      `${email} just confirmed a subscription to ${siteName}.`,
+      `${email} just subscribed to ${siteName}.`,
       "",
       `Active subscribers: ${activeCount}`,
       "",
@@ -306,25 +283,17 @@ export function subscriberNotification({
 }
 
 /**
- * Unsubscribes the address the token belongs to. A subscriber who had confirmed is kept as
- * `unsubscribed`, so the export leaves them out; an address that was never confirmed is deleted.
+ * Unsubscribes the address the token belongs to. It stays on the list as `unsubscribed`, so the
+ * export leaves it out and it isn't emailed again by mistake.
  */
 export async function unsubscribe(
   token: string,
   { db, now = new Date() }: { db: Database; now?: Date },
 ): Promise<"unsubscribed" | "invalid"> {
   if (!isToken(token)) return "invalid";
-  const removed = await db
-    .prepare(
-      "DELETE FROM subscribers WHERE unsubscribe_token = ? AND status = 'pending' AND confirmed_at IS NULL",
-    )
-    .bind(token)
-    .run();
-  if (removed.meta.changes === 1) return "unsubscribed";
   await db
     .prepare(
-      `UPDATE subscribers SET status = 'unsubscribed', unsubscribed_at = ?, confirmation_token_hash = NULL
-       WHERE unsubscribe_token = ? AND status != 'unsubscribed'`,
+      "UPDATE subscribers SET status = 'unsubscribed', unsubscribed_at = ? WHERE unsubscribe_token = ? AND status = 'active'",
     )
     .bind(now.toISOString(), token)
     .run();
@@ -346,8 +315,14 @@ export function isFormRequest(request: Request): boolean {
  */
 export async function readForm(request: Request): Promise<URLSearchParams | undefined> {
   if (!isFormRequest(request)) return undefined;
-  if (Number(request.headers.get("content-length")) > MAX_BODY_BYTES) return undefined;
-  if (!request.body) return new URLSearchParams();
+  const text = await readText(request, MAX_BODY_BYTES);
+  return text === undefined ? undefined : new URLSearchParams(text);
+}
+
+/** Reads a request body as text, or `undefined` if it is larger than `limit` bytes. */
+async function readText(request: Request, limit: number): Promise<string | undefined> {
+  if (Number(request.headers.get("content-length")) > limit) return undefined;
+  if (!request.body) return "";
 
   const reader = request.body.getReader();
   const decoder = new TextDecoder();
@@ -357,13 +332,13 @@ export async function readForm(request: Request): Promise<URLSearchParams | unde
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > MAX_BODY_BYTES) {
+    if (size > limit) {
       await reader.cancel();
       return undefined;
     }
     text += decoder.decode(value, { stream: true });
   }
-  return new URLSearchParams(text + decoder.decode());
+  return text + decoder.decode();
 }
 
 /**
@@ -411,6 +386,8 @@ export interface SubscribeRequestOptions extends SubscribeOptions {
   turnstileHostname?: string;
   remoteIp?: string;
   fetch?: typeof fetch;
+  /** Checks that the address's domain can receive email (`checkMailDomain`); skipped if absent. */
+  checkDomain?: (domain: string) => Promise<DomainCheck>;
 }
 
 /** Handles a POST from the subscribe form. Responses are JSON: `{ ok, message, field? }`. */
@@ -421,6 +398,7 @@ export async function handleSubscribe(
     turnstileHostname,
     remoteIp,
     fetch: send,
+    checkDomain,
     ...options
   }: SubscribeRequestOptions,
 ): Promise<Response> {
@@ -430,6 +408,7 @@ export async function handleSubscribe(
 
   const email = normalizeEmail(form.get("email"));
   if (!email) return reply(400, messages.invalidEmail, "email");
+  if (isDisposableEmail(email)) return reply(400, messages.disposableEmail, "email");
 
   const human = await verifyTurnstile(form.get("cf-turnstile-response") ?? "", {
     secret: turnstileSecret,
@@ -439,6 +418,11 @@ export async function handleSubscribe(
   });
   if (!human) return reply(403, messages.verificationFailed);
 
+  // Only after Turnstile, so the endpoint can't be used to look up domains for free.
+  const domain = await checkDomain?.(email.slice(email.lastIndexOf("@") + 1));
+  if (domain === "missing") return reply(400, messages.missingDomain, "email");
+  if (domain === "no-mail") return reply(400, messages.noMailDomain, "email");
+
   try {
     const outcome = await subscribe(email, options);
     if (outcome === "busy") return reply(429, messages.busy);
@@ -447,6 +431,111 @@ export async function handleSubscribe(
   } catch {
     return reply(500, messages.error);
   }
+}
+
+/**
+ * Checks a webhook's Svix signature, which Resend uses: an HMAC-SHA256 of `id.timestamp.body`
+ * with the base64 part of the `whsec_` secret, sent as space-separated `v1,<base64>` values.
+ * Timestamps older or newer than WEBHOOK_TOLERANCE are refused, so a captured request can't be replayed.
+ */
+export async function verifyWebhookSignature(
+  {
+    id,
+    timestamp,
+    signature,
+    body,
+  }: { id: string; timestamp: string; signature: string; body: string },
+  { secret, now = new Date() }: { secret: string; now?: Date },
+): Promise<boolean> {
+  if (!id || !/^\d+$/.test(timestamp) || !signature) return false;
+  if (Math.abs(now.getTime() - Number(timestamp) * 1000) > WEBHOOK_TOLERANCE) return false;
+  let keyBytes: Uint8Array<ArrayBuffer>;
+  try {
+    keyBytes = Uint8Array.from(atob(secret.replace(/^whsec_/, "")), (char) => char.charCodeAt(0));
+  } catch {
+    return false;
+  }
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const mac = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(`${id}.${timestamp}.${body}`),
+  );
+  const expected = btoa(String.fromCharCode(...new Uint8Array(mac)));
+  return signature.split(" ").some((part) => {
+    const [version, value] = part.split(",");
+    return version === "v1" && value !== undefined && sameString(value, expected);
+  });
+}
+
+/** Compares two strings in time that depends only on their length. */
+function sameString(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let difference = 0;
+  for (let i = 0; i < a.length; i++) difference |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return difference === 0;
+}
+
+/**
+ * Handles Resend's webhook. A permanent bounce marks the address `bounced` and a spam report marks
+ * it `complained`: neither is emailed again, and the form won't add them back. Other events are
+ * acknowledged and ignored. Logs say what happened, never the addresses.
+ */
+export async function handleResendWebhook(
+  request: Request,
+  { secret, db, now = new Date() }: { secret: string; db: Database; now?: Date },
+): Promise<Response> {
+  const body = await readText(request, MAX_WEBHOOK_BYTES);
+  if (body === undefined) return new Response(null, { status: 413 });
+  const verified = await verifyWebhookSignature(
+    {
+      id: request.headers.get("svix-id") ?? "",
+      timestamp: request.headers.get("svix-timestamp") ?? "",
+      signature: request.headers.get("svix-signature") ?? "",
+      body,
+    },
+    { secret, now },
+  );
+  if (!verified) return new Response(null, { status: 401 });
+
+  let event: { type?: unknown; data?: { to?: unknown; bounce?: { type?: unknown } } };
+  try {
+    event = JSON.parse(body);
+  } catch {
+    return new Response(null, { status: 400 });
+  }
+  const status =
+    event.type === "email.complained"
+      ? "complained"
+      : event.type === "email.bounced" && (event.data?.bounce?.type ?? "Permanent") === "Permanent"
+        ? "bounced"
+        : undefined;
+  if (!status) return new Response(null, { status: 204 });
+
+  const recipients = Array.isArray(event.data?.to) ? event.data.to : [];
+  let removed = 0;
+  for (const recipient of recipients) {
+    const email = normalizeEmail(recipient);
+    if (!email) continue;
+    const result = await db
+      .prepare(
+        `UPDATE subscribers SET status = ?, unsubscribed_at = COALESCE(unsubscribed_at, ?)
+         WHERE email = ? AND status IN ('active', 'unsubscribed')`,
+      )
+      .bind(status, now.toISOString(), email)
+      .run();
+    removed += result.meta.changes;
+  }
+  console.info(
+    `[subscriptions] Resend reported ${String(event.type)}; ${removed} subscriber(s) marked ${status}.`,
+  );
+  return new Response(null, { status: 204 });
 }
 
 /** Cloudflare's published Turnstile test site keys and secret keys, which always pass or fail. */
