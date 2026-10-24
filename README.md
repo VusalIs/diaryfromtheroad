@@ -12,7 +12,7 @@ Posts and apps are Markdown or MDX files in Astro content collections, settings 
 - **Apps** (`/apps/`): every app on one page, one section per app
 - **About** (`/about/`), **Contact** (`/contact/`, links to the profiles in the site config; no form), and **Privacy** (`/privacy/`, what the site does with visitors' information)
 - A search palette on every page (`Ctrl/⌘ + K` or `/`), light and dark modes, and the RSS feed at `/rss.xml`
-- Email sign-up for the weekly map (a Google Maps list of places, once a week), at the end of each post, on the About page, and in a popup that opens once per visit at most. Readers are subscribed straight away and get a welcome email (Cloudflare D1, Turnstile, and Resend). See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)
+- Email sign-up for the weekly map (a Google Maps list of places, once a week), at the end of each post, on the home and About pages, and in a popup that opens once per visit at most. Readers are subscribed straight away and get a welcome email (Cloudflare D1, Turnstile, and Resend). See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)
 
 ## Stack
 
