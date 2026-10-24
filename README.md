@@ -147,7 +147,7 @@ It runs `astro check`, the tests, the production build, and Prettier's check, an
 
 ## Deployment
 
-The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`). The subscriber database binding is commented out while subscriptions are off. Secrets are never in the file.
+The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`). It also binds the subscriber database (`SUBSCRIBERS_DB`, the D1 database `diary-subscribers`). Secrets are never in the file.
 
 ```bash
 npm run build
@@ -169,7 +169,7 @@ Until the domain is connected, the site runs at `https://diaryfromtheroad.<your-
 - Every page, including the article, is served there.
 - It stays out of search engines: `robots.txt` disallows crawling there, and every page's canonical URL points at `diaryfromtheroad.com`.
 - Absolute links point at `diaryfromtheroad.com`, which doesn't answer yet. Share links, link previews (their image is an absolute URL), the RSS feed's item links, and the sitemap work only once the domain is connected. Test the temporary site by browsing it, not by sharing it.
-- Email sign-up stays closed: `subscriptions.enabled` is `false`, no database is bound, and requests don't come from `siteUrl`.
+- Email sign-up stays closed there: requests don't come from `siteUrl`.
 
 To deploy it:
 

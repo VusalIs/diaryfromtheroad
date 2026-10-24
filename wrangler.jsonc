@@ -9,21 +9,19 @@
     "directory": "./dist",
     "not_found_handling": "404-page",
   },
-  // Email subscribers: off for the first launch, so no database is bound and sign-up stays closed.
-  // To enable it (SUBSCRIPTIONS.md), create the database, then uncomment this block with its real ID.
-  // Local development with `--local` commands never touches the remote database.
-  // "d1_databases": [
-  //   {
-  //     "binding": "SUBSCRIBERS_DB",
-  //     "database_name": "diary-subscribers",
-  //     "database_id": "<the ID that `npx wrangler d1 create diary-subscribers` prints>",
-  //     "migrations_dir": "migrations",
-  //   },
-  // ],
+  // Email subscribers (SUBSCRIPTIONS.md). Sign-up also needs `subscriptions.enabled` in src/config/site.ts.
+  // Local development (`astro dev`, `--local` commands) uses a local copy in .wrangler/, never this database.
+  "d1_databases": [
+    {
+      "binding": "SUBSCRIBERS_DB",
+      "database_name": "diary-subscribers",
+      "database_id": "13b89fc3-a391-4df1-b5c2-0b6ad426cc9b",
+      "migrations_dir": "migrations",
+    },
+  ],
   "vars": {
-    // The sender for confirmation emails, at a domain verified in Resend, e.g.
-    // "Diary From the Road <posts@your-domain>". Empty keeps sign-up closed in production.
+    // The sender for confirmation emails, on diaryfromtheroad.com, which is verified in Resend.
     // Secrets (TURNSTILE_SECRET_KEY, RESEND_API_KEY) are set with `wrangler secret put`, never here.
-    "EMAIL_FROM": "",
+    "EMAIL_FROM": "Diary From the Road <hello@diaryfromtheroad.com>",
   },
 }

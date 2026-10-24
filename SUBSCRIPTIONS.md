@@ -2,7 +2,7 @@
 
 Readers can leave their email address to hear about new posts. Addresses are stored in a Cloudflare D1 database that only you can read, with double opt-in: nobody is subscribed until they click the link in a confirmation email, which [Resend](https://resend.com/) delivers. There are no campaigns and no automatic post emails; you export the list and write to subscribers yourself.
 
-**Status: sign-up is closed.** `subscriptions.enabled` in [src/config/site.ts](./src/config/site.ts) is `false`, the database binding in [wrangler.jsonc](./wrangler.jsonc) is commented out, and the production setup below hasn't been done. Until it is, production builds leave the form out and the endpoint answers "Email sign-up isn't open yet" without storing anything.
+**Status: sign-up is closed.** `subscriptions.enabled` in [src/config/site.ts](./src/config/site.ts) is `false`. The domain, Resend, Turnstile, the secrets, and the D1 database (`diary-subscribers`, with its table) are set up; what's left is the build's site key, the privacy section, and a live test. Until sign-up is enabled, production builds leave the form out and the endpoint answers "Email sign-up isn't open yet" without storing anything.
 
 ## How it works
 
@@ -67,7 +67,7 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
 
 1. **Connect the domain.** `siteUrl` is already `https://diaryfromtheroad.com`; follow [Connecting diaryfromtheroad.com](./README.md#connecting-diaryfromtheroadcom) so the Worker answers on it. Sign-up refuses every other host.
 2. **Sign in to Wrangler:** `npx wrangler login`.
-3. **Create the database**, then uncomment the `d1_databases` block in [wrangler.jsonc](./wrangler.jsonc) and put the ID it prints in `database_id`. If Wrangler offers to add the binding itself, decline: the block is already written.
+3. **Create the database** and put its ID in `database_id` in the `d1_databases` block of [wrangler.jsonc](./wrangler.jsonc). Done: the database is `diary-subscribers`. If Wrangler offers to add a binding itself, decline: the block is already written.
 
    ```bash
    npx wrangler d1 create diary-subscribers
@@ -105,8 +105,6 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
 To close sign-up again, set `subscriptions.enabled` back to `false` and deploy.
 
 ## Local development
-
-First uncomment the `d1_databases` block in [wrangler.jsonc](./wrangler.jsonc). Locally its `database_id` only names the local copy, so the placeholder text works, but don't deploy with it: comment the block out again, or put the real ID in, first.
 
 ```bash
 cp .dev.vars.example .dev.vars
