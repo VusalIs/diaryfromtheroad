@@ -186,7 +186,8 @@ describe("subscribing", () => {
     assert.equal(t.verifications.length, 0);
   });
 
-  it("rejects a failed or missing Turnstile check without storing anything", async () => {
+  it("rejects a failed or missing Turnstile check without storing anything", async (context) => {
+    context.mock.method(console, "warn", () => {});
     const t = setup();
     const failed = await t.post({ email: "reader@example.com", "cf-turnstile-response": "fail" });
     const missing = await t.post({ email: "reader@example.com" });
@@ -333,7 +334,8 @@ describe("subscribing", () => {
     assert.equal(t.rows().length, 0);
   });
 
-  it("refuses domains that don't exist or take no email, after the spam check", async () => {
+  it("refuses domains that don't exist or take no email, after the spam check", async (context) => {
+    context.mock.method(console, "warn", () => {});
     const checked: string[] = [];
     const answers: Record<string, DomainCheck> = {
       "gone.test": "missing",
@@ -518,7 +520,8 @@ describe("verifyTurnstile", () => {
     assert.equal(await verifyTurnstile("token", options), true);
   });
 
-  it("rejects failures, other actions, server errors, and network errors", async () => {
+  it("rejects failures, other actions, server errors, and network errors", async (context) => {
+    context.mock.method(console, "warn", () => {});
     const cases: (typeof fetch)[] = [
       respond({ success: false, "error-codes": ["invalid-input-response"] }),
       respond({ success: true, action: "login" }),
@@ -537,6 +540,30 @@ describe("verifyTurnstile", () => {
   });
 });
 
+describe("Turnstile refusals in the log", () => {
+  it("name Cloudflare's error codes or the mismatch, never the token or the secret", async (context) => {
+    const logged = context.mock.method(console, "warn", () => {});
+    const respond =
+      (body: unknown): typeof fetch =>
+      async () =>
+        Response.json(body);
+    await verifyTurnstile("secret-token-value", {
+      secret: SECRET,
+      fetch: respond({ success: false, "error-codes": ["invalid-input-secret"] }),
+    });
+    await verifyTurnstile("secret-token-value", {
+      secret: SECRET,
+      hostname: "diary.test",
+      fetch: respond({ success: true, action: "subscribe", hostname: "other.test" }),
+    });
+
+    const log = logged.mock.calls.map((call) => call.arguments.join(" ")).join("\n");
+    assert.match(log, /error codes \[invalid-input-secret\]/);
+    assert.match(log, /solved on other\.test, not diary\.test/);
+    assert.doesNotMatch(log, new RegExp(`secret-token-value|${SECRET}`));
+  });
+});
+
 describe("verifyTurnstile with a hostname", () => {
   const respond =
     (body: unknown): typeof fetch =>
@@ -545,7 +572,8 @@ describe("verifyTurnstile with a hostname", () => {
   const check = (body: unknown) =>
     verifyTurnstile("token", { secret: SECRET, hostname: "diary.test", fetch: respond(body) });
 
-  it("accepts a challenge solved on the site's host and rejects any other", async () => {
+  it("accepts a challenge solved on the site's host and rejects any other", async (context) => {
+    context.mock.method(console, "warn", () => {});
     assert.equal(await check({ success: true, action: "subscribe", hostname: "diary.test" }), true);
     assert.equal(
       await check({ success: true, action: "subscribe", hostname: "other.test" }),
@@ -554,7 +582,8 @@ describe("verifyTurnstile with a hostname", () => {
     assert.equal(await check({ success: true, action: "subscribe" }), false);
   });
 
-  it("requires the subscribe action, which only test keys leave empty", async () => {
+  it("requires the subscribe action, which only test keys leave empty", async (context) => {
+    context.mock.method(console, "warn", () => {});
     assert.equal(await check({ success: true, hostname: "diary.test" }), false);
     assert.equal(await check({ success: true, action: "login", hostname: "diary.test" }), false);
     assert.equal(

@@ -342,7 +342,8 @@ async function readText(request: Request, limit: number): Promise<string | undef
 }
 
 /**
- * Validates a Turnstile token with Siteverify. Any failure, including a network error, is a no.
+ * Validates a Turnstile token with Siteverify. Any failure, including a network error, is a no,
+ * and is logged with Cloudflare's error codes or the mismatch, never the token or the secret.
  * With `hostname`, the challenge must also have been solved on that host, for the `subscribe` action.
  */
 export async function verifyTurnstile(
@@ -355,21 +356,44 @@ export async function verifyTurnstile(
   }: { secret: string; hostname?: string; remoteIp?: string; fetch?: typeof fetch },
 ): Promise<boolean> {
   if (!token || token.length > MAX_TURNSTILE_TOKEN) return false;
+  const refuse = (reason: string) => {
+    console.warn(`[subscriptions] Turnstile refused the sign-up: ${reason}`);
+    return false;
+  };
   const body = new URLSearchParams({ secret, response: token });
   if (remoteIp) body.set("remoteip", remoteIp);
   try {
     const response = await send(SITEVERIFY_URL, { method: "POST", body });
-    if (!response.ok) return false;
+    if (!response.ok) return refuse(`Siteverify answered ${response.status}`);
     const result: unknown = await response.json();
-    if (typeof result !== "object" || result === null) return false;
-    const checked = result as { success?: unknown; action?: unknown; hostname?: unknown };
-    if (checked.success !== true) return false;
+    if (typeof result !== "object" || result === null) return refuse("unreadable Siteverify reply");
+    const checked = result as {
+      success?: unknown;
+      action?: unknown;
+      hostname?: unknown;
+      "error-codes"?: unknown;
+    };
+    if (checked.success !== true) {
+      const codes = Array.isArray(checked["error-codes"]) ? checked["error-codes"].join(", ") : "";
+      return refuse(`error codes [${codes || "none"}]`);
+    }
     // Production passes `hostname`: the token must come from this site's widget and action.
-    if (hostname) return checked.hostname === hostname && checked.action === TURNSTILE_ACTION;
+    if (hostname) {
+      if (checked.hostname !== hostname) {
+        return refuse(`solved on ${String(checked.hostname)}, not ${hostname}`);
+      }
+      if (checked.action !== TURNSTILE_ACTION) {
+        return refuse(`action "${String(checked.action)}", not "${TURNSTILE_ACTION}"`);
+      }
+      return true;
+    }
     // Cloudflare's test keys, used only in development, leave `action` empty.
-    return !checked.action || checked.action === TURNSTILE_ACTION;
-  } catch {
-    return false;
+    if (checked.action && checked.action !== TURNSTILE_ACTION) {
+      return refuse(`action "${String(checked.action)}", not "${TURNSTILE_ACTION}"`);
+    }
+    return true;
+  } catch (error) {
+    return refuse(`Siteverify unreachable (${error instanceof Error ? error.name : "error"})`);
   }
 }
 
