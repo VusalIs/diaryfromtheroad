@@ -55,7 +55,7 @@ When someone confirms, the site emails `NOTIFY_EMAIL` (set in `wrangler.jsonc` `
 In production, sign-up opens only when all of these hold. If any is missing, the endpoint answers 503 without storing anything and logs which ones, by name and never by value (`npx wrangler tail` shows the log):
 
 - `subscriptions.enabled` is `true` in [src/config/site.ts](./src/config/site.ts).
-- `siteUrl` (`https://diaryfromtheroad.com`) is not the `example.com` placeholder, and the request came from it, so the domain has to be connected first. Sign-ups from any other address, such as the Worker's `*.workers.dev` URL, are refused, so the links in emails always point at `siteUrl`, and the Turnstile challenge must have been solved on that host.
+- `siteUrl` (`https://diaryfromtheroad.com`) is not the `example.com` placeholder, and the request came from it, so the domain has to be connected first. Sign-ups from any other address, such as a `*.workers.dev` or preview URL, are refused, so the links in emails always point at `siteUrl`, and the Turnstile challenge must have been solved on that host.
 - The Worker has the `SUBSCRIBERS_DB` binding.
 - The `TURNSTILE_SECRET_KEY` secret is set and isn't one of Cloudflare's test keys.
 - The `RESEND_API_KEY` secret is set and looks like a Resend key (`re_…`).
@@ -69,7 +69,7 @@ In development (`npm run dev`), `subscriptions.enabled` is ignored: sign-up need
 
 ### Preview deployments and other hosts
 
-Preview URLs and the Worker's `*.workers.dev` address run the same build with the same secrets and the same production database. Sign-up refuses every host but `siteUrl`'s, and their `robots.txt` disallows crawling, so they can neither collect addresses nor compete with the real site in search results. Confirm and unsubscribe links work on any host, because they need a valid token and nothing else. Once the custom domain works, you can switch the other addresses off with `"workers_dev": false` and `"preview_urls": false` in `wrangler.jsonc`.
+The Worker's `*.workers.dev` address and preview URLs are switched off (`"workers_dev": false` and `"preview_urls": false` in `wrangler.jsonc`), so it answers only on the domain. If you turn either back on, it runs the same build with the same secrets and the same production database there. Sign-up still refuses every host but `siteUrl`'s, and `robots.txt` disallows crawling, so those addresses can neither collect addresses nor compete with the real site in search results. Confirm and unsubscribe links work on any host, because they need a valid token and nothing else.
 
 ### Abuse controls
 
@@ -86,7 +86,7 @@ There is no endpoint that reads the list. Subscribers are only ever read with Wr
 
 Run the commands from the project folder. Commands that touch your Cloudflare account always say `--remote`, and none of this needs the form to be live.
 
-1. **Connect the domain.** `siteUrl` is already `https://diaryfromtheroad.com`; follow [Connecting diaryfromtheroad.com](./README.md#connecting-diaryfromtheroadcom) so the Worker answers on it. Sign-up refuses every other host.
+1. **Connect the domain.** `siteUrl` is already `https://diaryfromtheroad.com`; it is attached to the Worker as described in [The domain](./README.md#the-domain). Sign-up refuses every other host.
 2. **Sign in to Wrangler:** `npx wrangler login`.
 3. **Create the database** and put its ID in `database_id` in the `d1_databases` block of [wrangler.jsonc](./wrangler.jsonc). Done: the database is `diary-subscribers`. If Wrangler offers to add a binding itself, decline: the block is already written.
 

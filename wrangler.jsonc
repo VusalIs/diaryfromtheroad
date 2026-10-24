@@ -1,10 +1,12 @@
 {
   "name": "diaryfromtheroad",
   "compatibility_date": "2026-10-08",
-  // Deploy with `npm run build`, then `npx wrangler deploy`, which uses the Worker config the build writes.
-  // The workers.dev URL serves the site until diaryfromtheroad.com is connected; robots.txt keeps it
-  // out of search engines, and canonical URLs point at the domain. See README.md.
-  "workers_dev": true,
+  // Every push to `main` deploys through Cloudflare Workers Builds; by hand, `npm run build`, then
+  // `npx wrangler deploy`, which uses the Worker config the build writes.
+  // The site answers only on diaryfromtheroad.com, a custom domain attached in the dashboard (Settings →
+  // Domains & Routes), which deploys leave as it is. The workers.dev URL and preview URLs are off.
+  "workers_dev": false,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",

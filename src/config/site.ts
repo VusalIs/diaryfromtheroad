@@ -15,7 +15,6 @@ export const siteConfig = {
     "Notes from the road on travel, motorcycles, money, remote work, and building things along the way.",
   // The canonical domain, without a trailing slash. Canonical URLs, Open Graph tags, the feed, the
   // sitemap, and the links in subscription emails use it, and only this host may be crawled.
-  // Until the domain is connected the site runs on its workers.dev URL; see README.md.
   siteUrl: "https://diaryfromtheroad.com",
   language: "en",
   locale: "en_US",

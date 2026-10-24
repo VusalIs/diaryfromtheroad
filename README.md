@@ -147,52 +147,36 @@ It runs `astro check`, the tests, the production build, and Prettier's check, an
 
 ## Deployment
 
-The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), turns on its `workers.dev` URL, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`) and the address told about new subscribers (`NOTIFY_EMAIL`). It also binds the subscriber database (`SUBSCRIBERS_DB`, the D1 database `diary-subscribers`). Secrets are never in the file.
+The site deploys to **Cloudflare Workers** with the `@astrojs/cloudflare` adapter, which does not support Cloudflare Pages. [wrangler.jsonc](./wrangler.jsonc) names the Worker (`diaryfromtheroad`), keeps its `workers.dev` URL and preview URLs off so it answers only on the domain, serves the prerendered pages as static assets with the 404 page for unknown paths, and holds the email sender (`EMAIL_FROM`) and the address told about new subscribers (`NOTIFY_EMAIL`). It also binds the subscriber database (`SUBSCRIBERS_DB`, the D1 database `diary-subscribers`). Secrets are never in the file.
+
+Every push to `main` on GitHub builds and deploys the site through Cloudflare Workers Builds, in about a minute. To deploy by hand:
 
 ```bash
 npm run build
 npx wrangler deploy
 ```
 
-`wrangler deploy` uses the Worker config the build writes, so build first. There is no deploy script in `package.json`. The adapter's session storage is turned off and images are optimized at build time, so the deploy needs no KV namespace or Cloudflare Images binding. Builds delete the copy of local variables (`.dev.vars`) that Cloudflare's Vite plugin writes into `dist/server`, so local secrets never reach the build output; see [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md#local-values-stay-out-of-builds). Email sign-up needs more setup, and stays closed until then; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md#setting-up-production) has the steps.
+`wrangler deploy` uses the Worker config the build writes, so build first. There is no deploy script in `package.json`. The adapter's session storage is turned off and images are optimized at build time, so the deploy needs no KV namespace or Cloudflare Images binding. Builds delete the copy of local variables (`.dev.vars`) that Cloudflare's Vite plugin writes into `dist/server`, so local secrets never reach the build output; see [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md#local-values-stay-out-of-builds). Email sign-up has its own setup, described in [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md#setting-up-production).
 
 ### Domains and crawling
 
 `siteUrl` in [src/config/site.ts](./src/config/site.ts) is `https://diaryfromtheroad.com`, the canonical domain. Canonical URLs, Open Graph and Twitter tags, structured data, the RSS feed, the sitemap, and share links all use it, whichever host served the page.
 
-`/robots.txt` is answered by the Worker ([src/lib/robots.ts](./src/lib/robots.ts)). It allows crawling only for requests to exactly `https://diaryfromtheroad.com`, and says `Disallow: /` to every other host: the `workers.dev` URL, preview URLs, `www.`, and plain `http`.
+`/robots.txt` is answered by the Worker ([src/lib/robots.ts](./src/lib/robots.ts)). It allows crawling only for requests to exactly `https://diaryfromtheroad.com`, and says `Disallow: /` to any other host the Worker might answer on, such as a `workers.dev` or preview URL if they are turned back on.
 
-### Temporary deployment on workers.dev
+### The domain
 
-Until the domain is connected, the site runs at `https://diaryfromtheroad.<your-subdomain>.workers.dev`, where the subdomain is your Cloudflare account's; Wrangler prints the full URL when it deploys.
+`diaryfromtheroad.com` is registered with Cloudflare Registrar, so its DNS is on Cloudflare. In the Cloudflare dashboard:
 
-- Every page, including the article, is served there.
-- It stays out of search engines: `robots.txt` disallows crawling there, and every page's canonical URL points at `diaryfromtheroad.com`.
-- Absolute links point at `diaryfromtheroad.com`, which doesn't answer yet. Share links, link previews (their image is an absolute URL), the RSS feed's item links, and the sitemap work only once the domain is connected. Test the temporary site by browsing it, not by sharing it.
-- Email sign-up stays closed there: requests don't come from `siteUrl`.
-
-To deploy it:
-
-1. `npx wrangler login`
-2. In the Cloudflare dashboard (Workers & Pages), make sure your account has a `workers.dev` subdomain; a first-time account is asked to choose one.
-3. `npm run release:check`
-4. `npm run build`, then `npx wrangler deploy`, and open the URL it prints.
-
-### Connecting diaryfromtheroad.com
-
-No code changes are needed: `siteUrl` already points at the domain.
-
-1. Buy `diaryfromtheroad.com` at GoDaddy.
-2. In the Cloudflare dashboard, in the account that has the Worker, add the domain as a site (the Free plan is enough). Cloudflare shows two nameservers.
-3. At GoDaddy, turn off DNSSEC for the domain if it is on, then change its nameservers (Domain → DNS → Nameservers → Change → use my own nameservers) to Cloudflare's two. Wait for Cloudflare to mark the site Active; it can take up to a day.
-4. Workers & Pages → `diaryfromtheroad` → Settings → Domains & Routes → Add → Custom domain → `diaryfromtheroad.com`. Cloudflare creates the DNS record and the certificate.
-5. Check `https://diaryfromtheroad.com`: pages load over HTTPS, `/robots.txt` now allows crawling and lists the sitemap, and a shared link shows its preview.
-6. Optional: to make `www.diaryfromtheroad.com` work, add a redirect rule in Cloudflare that sends it to `https://diaryfromtheroad.com`; the canonical domain stays without `www`.
-7. Optional: once the domain works, set `"workers_dev": false` in `wrangler.jsonc` and deploy again, so the temporary URL stops answering. Nothing from it was indexed.
+- **Workers & Pages → `diaryfromtheroad` → Settings → Domains & Routes** has `diaryfromtheroad.com` as a custom domain, which gives it its DNS record and certificate. It isn't in `wrangler.jsonc`, and deploys leave it as it is.
+- **SSL/TLS → Edge Certificates → Always Use HTTPS** is on, so plain `http` redirects to `https`.
+- **Rules → Redirect Rules** sends `www.diaryfromtheroad.com` to `https://diaryfromtheroad.com` with a 301. A proxied `AAAA` record for `www` pointing at `100::` lets the rule see those requests.
+- **DNS → Settings → DNSSEC** is on.
+- **Email → Email Routing** forwards `hello@diaryfromtheroad.com` to a personal inbox (its `MX` and SPF records are on the root), and the DNS records Resend asked for let the site send email from the domain ([SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)).
+- Google Search Console has the domain, with `sitemap-index.xml` submitted.
 
 ## Before launch
 
-- Connect `diaryfromtheroad.com` ([Connecting diaryfromtheroad.com](#connecting-diaryfromtheroadcom)). `siteUrl` already points at it, so until then, share links, link previews, RSS item links, and the sitemap point at a domain that doesn't answer yet.
 - Set `email` in `src/config/site.ts` if you want it on the Contact page and in the footer; it is empty and hidden now.
 - The tags in `src/config/taxonomy.ts` are places and recurring themes (Vietnam, Cost of Living, Living Abroad, and so on). Add one there before using it in a post.
 - Replace `public/favicon.svg`, a plain "D" monogram in the site's colors, with your own mark if you have one (and `public/favicon.ico`, the same mark at 16, 32, and 48 pixels), and optionally `public/og-image.png`.
