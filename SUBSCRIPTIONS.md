@@ -1,27 +1,44 @@
 # Email Subscriptions
 
-Readers can leave their email address to hear about new posts. Addresses are stored in a Cloudflare D1 database that only you can read, with double opt-in: nobody is subscribed until they click the link in a confirmation email, which [Resend](https://resend.com/) delivers. There are no campaigns and no automatic post emails; you export the list and write to subscribers yourself.
+Readers can sign up for **the weekly map**: one email a week with a Google Maps list of places worth finding where you are travelling (viewpoints, cafés to work from, cheap local food, detours). Addresses are stored in a Cloudflare D1 database that only you can read, with double opt-in: nobody is subscribed until they click the link in a confirmation email, which [Resend](https://resend.com/) delivers. There are no campaigns and nothing is sent automatically; each week you export the list and send the email yourself.
+
+The forms promise exactly that, so keep to it: one email a week, a Google Maps list, free, and a way to unsubscribe in every email. If what you send changes, change the copy too: the popup ([src/components/chrome/NewsletterPopup.astro](./src/components/chrome/NewsletterPopup.astro)), the end-of-post form ([src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro)), the confirmation email (`confirmationEmail` in [src/lib/subscriptions.ts](./src/lib/subscriptions.ts)), the confirm and unsubscribe pages, and [the privacy notice](./src/pages/privacy.astro).
 
 **Status: sign-up is on.** `subscriptions.enabled` in [src/config/site.ts](./src/config/site.ts) is `true`, and the domain, Resend, Turnstile, the secrets, and the D1 database (`diaryfromtheroad.com`, `diary-subscribers`) are set up. Set `enabled` back to `false` and deploy to close it: production builds then leave the form out and the endpoint answers "Email sign-up isn't open yet" without storing anything.
 
 ## How it works
 
-| Piece                  | Where                                                                                |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| The form               | [src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro) |
-| `POST /api/subscribe/` | [src/pages/api/subscribe.ts](./src/pages/api/subscribe.ts)                           |
-| `/subscribe/confirm/`  | [src/pages/subscribe/confirm.astro](./src/pages/subscribe/confirm.astro)             |
-| `/unsubscribe/`        | [src/pages/unsubscribe.astro](./src/pages/unsubscribe.astro)                         |
-| `/privacy/`            | [src/pages/privacy.astro](./src/pages/privacy.astro)                                 |
-| Logic, Resend, checks  | [src/lib/subscriptions.ts](./src/lib/subscriptions.ts)                               |
-| Bindings and secrets   | [src/lib/subscriptions-env.ts](./src/lib/subscriptions-env.ts)                       |
-| Database schema        | [migrations/0001_create_subscribers.sql](./migrations/0001_create_subscribers.sql)   |
-| Tests                  | [tests/subscriptions.test.ts](./tests/subscriptions.test.ts), run by `npm test`      |
+| Piece                  | Where                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| End-of-post form       | [src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro)                                                                   |
+| Popup                  | [src/components/chrome/NewsletterPopup.astro](./src/components/chrome/NewsletterPopup.astro)                                                           |
+| Field, button, script  | [src/components/blog/SubscribeFields.astro](./src/components/blog/SubscribeFields.astro)                                                               |
+| When the popup opens   | [src/lib/newsletter-popup.ts](./src/lib/newsletter-popup.ts)                                                                                           |
+| `POST /api/subscribe/` | [src/pages/api/subscribe.ts](./src/pages/api/subscribe.ts)                                                                                             |
+| `/subscribe/confirm/`  | [src/pages/subscribe/confirm.astro](./src/pages/subscribe/confirm.astro)                                                                               |
+| `/unsubscribe/`        | [src/pages/unsubscribe.astro](./src/pages/unsubscribe.astro)                                                                                           |
+| `/privacy/`            | [src/pages/privacy.astro](./src/pages/privacy.astro)                                                                                                   |
+| Logic, Resend, checks  | [src/lib/subscriptions.ts](./src/lib/subscriptions.ts)                                                                                                 |
+| Bindings and secrets   | [src/lib/subscriptions-env.ts](./src/lib/subscriptions-env.ts)                                                                                         |
+| Database schema        | [migrations/0001_create_subscribers.sql](./migrations/0001_create_subscribers.sql)                                                                     |
+| Tests                  | [tests/subscriptions.test.ts](./tests/subscriptions.test.ts) and [tests/newsletter-popup.test.ts](./tests/newsletter-popup.test.ts), run by `npm test` |
 
-1. **The form** sits at the end of every article, after the share row and before Previous and Next: a reader who has just finished a post is the one most likely to want the next. It is hidden without JavaScript, which the spam check needs, and Cloudflare's Turnstile script loads only when someone focuses the field. It links to the privacy notice at `/privacy/`, which the footer links too and which describes what the subscriber list stores.
+1. **The forms.** One sits at the end of every article, after the share row and before Previous and Next. The other is a popup that can open on other pages too (below). Both use the same field, button, and script ([SubscribeFields.astro](./src/components/blog/SubscribeFields.astro)) and post to the same endpoint. The end-of-post form is hidden without JavaScript, which the spam check needs, and Cloudflare's Turnstile script loads only when someone focuses an email field. Both link to the privacy notice at `/privacy/`, which the footer links too and which describes what the subscriber list stores.
 2. **Sign-up** posts the address and a Turnstile token to `/api/subscribe/`. The server checks the token with Turnstile's Siteverify, validates and normalizes the address (trimmed, lowercased, at most 254 characters), stores it as `pending`, and sends the confirmation email through Resend's HTTP API. The reply is the same whether the address is new, pending, or already subscribed, so it never reveals who is on the list. If Resend refuses the email or can't be reached, the sign-up is rolled back.
 3. **Confirming** opens `/subscribe/confirm/?token=…` on `siteUrl`, which shows a button; the subscription becomes `active` when it is pressed. The extra click keeps mail scanners that follow links from confirming on someone's behalf. A link works once, for 48 hours.
 4. **Unsubscribing** opens `/unsubscribe/?token=…`, which also shows a button. The confirmation email carries the same link in `List-Unsubscribe` headers, so mail apps can offer their own unsubscribe button, which posts to the link. A confirmed subscriber is kept as `unsubscribed`, so exports leave them out; an address that was never confirmed is deleted.
+
+### The popup
+
+A native modal `<dialog>` with the weekly-map offer and the sign-up form. It is on every indexable page except `/privacy/` and `/contact/`; pages marked `noindex` (the 404, confirm, and unsubscribe pages) never have it.
+
+- **When it opens:** after 40 seconds of the page being visible, or after 15 seconds on a page at least two screens tall that the reader has scrolled more than halfway down. Time in a background tab doesn't count. It waits while another dialog (search, sharing, the image viewer) or the mobile menu is open, while the reader is typing or selecting text, and while the end-of-post form is on screen.
+- **How often:** at most once per visit (a flag in `sessionStorage`). Closing it keeps it away for 30 days; signing up, in the popup or at the end of a post, keeps it away for good. Both are remembered in `localStorage` under `diary-newsletter`, as the outcome and the date only, for example `{"state":"dismissed","on":"2026-10-24"}`. If the browser blocks storage, the popup never opens, since it couldn't remember being closed. Nothing about it is sent to the server.
+- **Closing it:** the close button, Escape, or a click on the backdrop. The rest of the page is inert while it is open, scrolling is locked, and focus returns to where it was.
+- **Signing up:** the same request and replies as the end-of-post form. The popup shows "Check your inbox." only after the server accepts the address, with the server's own reply; errors stay in the form so the reader can try again.
+- **The photo** (`src/assets/hero-road.jpg`) shows beside the text on screens at least 56rem wide. It is lazy-loaded, so it is only downloaded when the popup opens on a wide screen.
+
+The timings live in [src/lib/newsletter-popup.ts](./src/lib/newsletter-popup.ts). To keep only the end-of-post form, set `subscriptions.popup` to `false` in [src/config/site.ts](./src/config/site.ts). The popup follows `subscriptions.enabled` like the other form: a production build without sign-up has neither.
 
 ### What is stored
 
@@ -104,7 +121,7 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
    - The privacy notice at `/privacy/` has a section on what the subscriber list stores and how to unsubscribe.
 
 9. **Open sign-up:** set `subscriptions.enabled: true` in [src/config/site.ts](./src/config/site.ts), check that the site key in [astro.config.mjs](./astro.config.mjs) is the widget's (it is set for `diaryfromtheroad.com`), then build and deploy again.
-10. **Test it on the live site** with `npx wrangler tail` running: sign up with your own address at the end of a post, confirm from the email, check the row (below), and unsubscribe from the email's link.
+10. **Test it on the live site** with `npx wrangler tail` running: sign up with your own address at the end of a post or in the popup, confirm from the email, check the row (below), and unsubscribe from the email's link. To see the popup again after closing it, remove `diary-newsletter` from the site's local storage in your browser's developer tools, or use a private window.
 
 To close sign-up again, set `subscriptions.enabled` back to `false` and deploy.
 
@@ -117,7 +134,7 @@ npx wrangler d1 migrations apply diary-subscribers --local
 npm run dev
 ```
 
-The examples hold Cloudflare's Turnstile test keys, which always pass. The form appears at the end of every post, and confirmation emails are printed in the terminal, with links that work against the local database. To send real emails locally, put a Resend API key and a sender on your verified domain in `.dev.vars`.
+The examples hold Cloudflare's Turnstile test keys, which always pass. The form appears at the end of every post, the popup opens after 40 seconds on a page (or 15 after scrolling halfway down a long one), and confirmation emails are printed in the terminal, with links that work against the local database. To send real emails locally, put a Resend API key and a sender on your verified domain in `.dev.vars`.
 
 Local development can't write to the production database: `astro dev` and every `--local` command use a copy in `.wrangler/state` (git-ignored), and the binding has no `remote` setting. To inspect the local database:
 
@@ -145,7 +162,7 @@ npx wrangler d1 execute diary-subscribers --remote --json --command "SELECT emai
 
 The file holds personal data. `subscribers*.csv` is git-ignored; keep the file private and delete it when you are done.
 
-**When you write to subscribers**, send each person their own email with their `unsubscribe_url` in it, not one email to everyone. Export again before each send so recent unsubscribes are left out.
+**When you send the weekly map**, send each person their own email with their `unsubscribe_url` in it, not one email to everyone. Export again before each send so recent unsubscribes are left out.
 
 ## Maintenance
 

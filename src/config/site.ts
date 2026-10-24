@@ -42,11 +42,14 @@ export const siteConfig = {
   ] satisfies SocialLink[],
 
   /**
-   * Email sign-up (SUBSCRIPTIONS.md). Set `enabled` to false to close it again: production builds
-   * then leave the form out and the server refuses sign-ups. `npm run dev` ignores it.
+   * Email sign-up for the weekly map (SUBSCRIPTIONS.md). Set `enabled` to false to close it again:
+   * production builds then leave the forms out and the server refuses sign-ups. `npm run dev`
+   * ignores it. `popup` adds the sign-up popup to indexable pages; set it to false to keep only
+   * the form at the end of each post.
    */
   subscriptions: {
     enabled: true,
+    popup: true,
   },
 };
 

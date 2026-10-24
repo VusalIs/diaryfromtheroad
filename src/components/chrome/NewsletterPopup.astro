@@ -1,0 +1,387 @@
+---
+import { PUBLIC_TURNSTILE_SITE_KEY } from "astro:env/client";
+import { Image } from "astro:assets";
+import heroImage from "@/assets/hero-road.jpg";
+import SubscribeFields from "@/components/blog/SubscribeFields.astro";
+import Icon from "@/components/ui/Icon.astro";
+import { siteConfig } from "@/config/site";
+import { formSiteKey, messages } from "@/lib/subscriptions";
+
+/*
+ * The weekly-map sign-up as a native modal <dialog> (see SUBSCRIPTIONS.md). It opens by itself at
+ * most once per visit, after the reader has spent a while on the page, and stays away for 30 days
+ * once closed and for good after a sign-up (src/lib/newsletter-popup.ts). Escape, the close
+ * button, or a click outside closes it, and focus goes back where it was.
+ */
+
+/* Pages where an unasked-for popup would get in the way of what the reader came for. */
+const quietPaths = ["/privacy/", "/contact/"];
+
+const siteKey =
+  siteConfig.subscriptions.popup && !quietPaths.includes(Astro.url.pathname)
+    ? formSiteKey({
+        siteKey: PUBLIC_TURNSTILE_SITE_KEY,
+        production: import.meta.env.PROD,
+        enabled: siteConfig.subscriptions.enabled,
+        siteUrl: siteConfig.siteUrl,
+      })
+    : undefined;
+
+const perks = [
+  { icon: "mountain", label: "Viewpoints and unexpected finds" },
+  { icon: "coffee", label: "Cafés that are good for working" },
+  { icon: "utensils", label: "Cheap, good local food" },
+  { icon: "compass", label: "Activities worth a detour" },
+];
+---
+
+{siteKey && (
+  <dialog
+    class="newsletter"
+    aria-labelledby="newsletter-title"
+    aria-describedby="newsletter-lead"
+    data-newsletter
+  >
+    <div class="newsletter-panel">
+      <button
+        type="button"
+        class="newsletter-close icon-btn bg-sunken"
+        aria-label="Close"
+        data-newsletter-close
+      >
+        <Icon name="x" class="size-4" />
+      </button>
+
+      <div class="newsletter-media">
+        <Image
+          src={heroImage}
+          alt=""
+          widths={[320, 480, 640, 800]}
+          sizes="21rem"
+          quality={72}
+          loading="lazy"
+          class="object-[55%_50%]"
+        />
+      </div>
+
+      <div class="newsletter-body">
+        <div data-newsletter-offer>
+          <p class="newsletter-kicker">The weekly map</p>
+          <h2 id="newsletter-title" class="serif mt-3 text-section">
+            Places worth finding, wherever I am.
+          </h2>
+          <p id="newsletter-lead" class="mt-3 text-body">
+            Every week I send a Google Maps list of places I've found on the road and think are
+            worth your time.
+          </p>
+          <ul class="mt-5 grid gap-2 sm:grid-cols-2 sm:gap-3">
+            {perks.map((perk) => (
+              <li class="flex items-center gap-3 text-sm text-body">
+                <span class="newsletter-perk">
+                  <Icon name={perk.icon} class="size-4" />
+                </span>
+                {perk.label}
+              </li>
+            ))}
+          </ul>
+          <p class="mt-5 text-sm text-muted">
+            Save the list in Google Maps, and the places are there when you're nearby.
+          </p>
+          <div class="mt-6">
+            <SubscribeFields siteKey={siteKey} idPrefix="newsletter" buttonLabel="Send me the map">
+              One email a week. Free, and you can unsubscribe anytime. You'll confirm your address
+              by email first.{" "}
+              <a href="/privacy/" class="text-link">
+                How your address is kept
+              </a>
+              .
+            </SubscribeFields>
+          </div>
+        </div>
+
+        <div hidden data-newsletter-done>
+          <span class="newsletter-perk size-12">
+            <Icon name="mail" class="size-5" />
+          </span>
+          <h2
+            id="newsletter-done-title"
+            class="serif mt-5 text-section"
+            tabindex="-1"
+            data-newsletter-done-title
+          >
+            Check your inbox.
+          </h2>
+          <p class="mt-3 text-body" data-newsletter-done-message>
+            {messages.accepted}
+          </p>
+          <p class="mt-2 text-sm text-muted">
+            Once you confirm, the map arrives with the next weekly email.
+          </p>
+          <button type="button" class="btn btn-quiet mt-6" data-newsletter-close>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+)}
+
+<style>
+  .newsletter {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 1.25rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .newsletter[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .newsletter::backdrop {
+    background: rgb(4 14 21 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .newsletter-panel {
+    position: relative;
+    display: grid;
+    width: 100%;
+    max-width: 32rem;
+    max-height: calc(100dvh - 2.5rem);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+  }
+
+  .newsletter-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+  }
+
+  /* The photo only fits beside the text on wide screens; lazy, it loads only once shown. */
+  .newsletter-media {
+    display: none;
+    position: relative;
+    background: var(--sunken);
+  }
+
+  .newsletter-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The text scrolls inside the panel when the screen is too short for it. */
+  .newsletter-body {
+    max-height: calc(100dvh - 2.5rem - 2px);
+    overflow-y: auto;
+    padding: 1.5rem;
+  }
+
+  /* Focused from script after a sign-up so screen readers start there; it isn't a control. */
+  [data-newsletter-done-title]:focus {
+    outline: none;
+  }
+
+  .newsletter-kicker {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    margin-top: -0.75rem;
+    padding-right: 3rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .newsletter-perk {
+    display: grid;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .newsletter-perk.size-12 {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  @media (min-width: 40rem) {
+    .newsletter-body {
+      padding: 1.75rem;
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .newsletter-panel {
+      max-width: 54rem;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    }
+
+    .newsletter-media {
+      display: block;
+    }
+
+    .newsletter-body {
+      padding: 2.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .newsletter[open] .newsletter-panel {
+      animation: newsletter-in 0.4s var(--ease-out-expo);
+    }
+  }
+
+  @keyframes newsletter-in {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+  }
+</style>
+
+<script>
+  import {
+    POPUP_SESSION_KEY,
+    POPUP_STORAGE_KEY,
+    popupDue,
+    popupSnoozed,
+    rememberPopup,
+    type PopupOutcome,
+  } from "@/lib/newsletter-popup";
+
+  const popup = document.querySelector<HTMLDialogElement>("[data-newsletter]");
+  const offer = popup?.querySelector<HTMLElement>("[data-newsletter-offer]");
+  const done = popup?.querySelector<HTMLElement>("[data-newsletter-done]");
+  const doneTitle = popup?.querySelector<HTMLElement>("[data-newsletter-done-title]");
+  const doneMessage = popup?.querySelector<HTMLElement>("[data-newsletter-done-message]");
+
+  /* Whether the popup may open now. Storage that is blocked counts as no: without it the popup
+     couldn't remember being closed, and would come back on every visit. */
+  const allowed = () => {
+    try {
+      return (
+        sessionStorage.getItem(POPUP_SESSION_KEY) === null &&
+        !popupSnoozed(localStorage.getItem(POPUP_STORAGE_KEY), new Date())
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const remember = (outcome: PopupOutcome) => {
+    try {
+      localStorage.setItem(POPUP_STORAGE_KEY, rememberPopup(outcome, new Date()));
+    } catch {}
+  };
+
+  /* The reader is in the middle of something: another dialog or the menu is open, they are typing
+     or selecting text, or the sign-up form at the end of a post is already on screen. */
+  const occupied = (dialog: HTMLDialogElement) => {
+    if (document.querySelector("dialog[open], [data-site-header][data-open]")) return true;
+    if (document.activeElement?.matches("input, textarea, select, [contenteditable]")) return true;
+    if (window.getSelection()?.toString()) return true;
+    return [...document.querySelectorAll("form[data-subscribe]")].some((form) => {
+      if (dialog.contains(form)) return false;
+      const box = form.getBoundingClientRect();
+      return box.bottom > 0 && box.top < window.innerHeight;
+    });
+  };
+
+  if (popup && offer && done && doneTitle && doneMessage && typeof popup.showModal === "function") {
+    let opener: HTMLElement | null = null;
+    let signedUp = false;
+    let pressedBackdrop = false;
+
+    /* A sign-up through any form on the page keeps the popup away for good. */
+    document.addEventListener("subscribe:success", () => {
+      signedUp = true;
+      remember("signed-up");
+    });
+
+    const open = () => {
+      const active = document.activeElement;
+      opener = active instanceof HTMLElement && active !== document.body ? active : null;
+      try {
+        sessionStorage.setItem(POPUP_SESSION_KEY, "1");
+      } catch {}
+      popup.showModal();
+      document.documentElement.style.overflow = "hidden";
+    };
+
+    /* Counts the seconds the page is actually visible, and opens once the reader has spent long
+       enough and isn't busy with something else. */
+    let seconds = 0;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      seconds += 1;
+      const root = document.documentElement;
+      const due = popupDue({
+        seconds,
+        scrollTop: window.scrollY,
+        scrollHeight: root.scrollHeight,
+        viewportHeight: window.innerHeight,
+      });
+      if (!due) return;
+      if (!allowed()) {
+        window.clearInterval(timer);
+        return;
+      }
+      if (occupied(popup)) return;
+      window.clearInterval(timer);
+      open();
+    }, 1000);
+
+    popup.addEventListener("close", () => {
+      document.documentElement.style.overflow = "";
+      if (!signedUp) remember("dismissed");
+      opener?.focus({ preventScroll: true });
+      opener = null;
+    });
+
+    /* Only a click that starts and ends on the backdrop closes it, not a text selection that
+       drifts out of the panel. */
+    popup.addEventListener("pointerdown", (event) => {
+      pressedBackdrop = event.target === popup;
+    });
+    popup.addEventListener("click", (event) => {
+      if (event.target === popup && pressedBackdrop) popup.close();
+      pressedBackdrop = false;
+    });
+    popup.querySelectorAll("[data-newsletter-close]").forEach((button) => {
+      button.addEventListener("click", () => popup.close());
+    });
+
+    popup.addEventListener("subscribe:success", (event) => {
+      const { message } = (event as CustomEvent<{ message?: string }>).detail ?? {};
+      if (message) doneMessage.textContent = message;
+      offer.hidden = true;
+      done.hidden = false;
+      popup.setAttribute("aria-labelledby", "newsletter-done-title");
+      popup.removeAttribute("aria-describedby");
+      doneTitle.focus();
+    });
+  }
+</script>

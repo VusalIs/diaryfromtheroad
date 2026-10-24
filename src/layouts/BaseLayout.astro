@@ -1,6 +1,7 @@
 ---
 import type { ImageMetadata } from "astro";
 import { getImage } from "astro:assets";
+import NewsletterPopup from "@/components/chrome/NewsletterPopup.astro";
 import SearchDialog from "@/components/chrome/SearchDialog.astro";
 import SiteFooter from "@/components/chrome/SiteFooter.astro";
 import SiteHeader from "@/components/chrome/SiteHeader.astro";
@@ -161,5 +162,6 @@ const schema = structuredData ?? websiteSchema();
     </main>
     <SiteFooter />
     <SearchDialog />
+    {!noindex && <NewsletterPopup />}
   </body>
 </html>

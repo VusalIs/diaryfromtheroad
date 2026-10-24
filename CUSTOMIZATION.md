@@ -8,21 +8,21 @@ Edit [src/config/site.ts](./src/config/site.ts) first. It holds the site's name,
 
 Set `siteConfig.siteUrl` before building for production. Canonical URLs, social image URLs, the RSS feed, `robots.txt`, the sitemap, and JSON-LD all derive from it.
 
-| Key              | What it controls                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| `name`           | The wordmark in the header and footer, the `<title>` suffix on every page, the feed title  |
-| `title`          | The homepage `<title>` and its social title                                                |
-| `description`    | The default meta description, the feed description, and the line under the footer wordmark |
-| `siteUrl`        | The canonical domain, `https://diaryfromtheroad.com`, without a trailing slash             |
-| `language`       | The `lang` attribute, the feed language, and the language in structured data               |
-| `locale`         | The Open Graph locale, for example `en_US`                                                 |
-| `dateLocale`     | How dates are written, for example `en-US` or `en-GB`                                      |
-| `socialImage`    | The Open Graph and Twitter/X image for pages without their own, a path in `public/`        |
-| `wordsPerMinute` | The reading speed used to estimate read time when a post has no `readingTime`              |
-| `author`         | The journal's single author; see [Author](#author)                                         |
-| `email`          | The Contact page address and the footer's mail icon; leave it empty to hide both           |
-| `socials`        | The icon links in the footer and the chips on the Contact page; empty by default           |
-| `subscriptions`  | `enabled` opens email sign-up in production; see [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)    |
+| Key              | What it controls                                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `name`           | The wordmark in the header and footer, the `<title>` suffix on every page, the feed title                               |
+| `title`          | The homepage `<title>` and its social title                                                                             |
+| `description`    | The default meta description, the feed description, and the line under the footer wordmark                              |
+| `siteUrl`        | The canonical domain, `https://diaryfromtheroad.com`, without a trailing slash                                          |
+| `language`       | The `lang` attribute, the feed language, and the language in structured data                                            |
+| `locale`         | The Open Graph locale, for example `en_US`                                                                              |
+| `dateLocale`     | How dates are written, for example `en-US` or `en-GB`                                                                   |
+| `socialImage`    | The Open Graph and Twitter/X image for pages without their own, a path in `public/`                                     |
+| `wordsPerMinute` | The reading speed used to estimate read time when a post has no `readingTime`                                           |
+| `author`         | The journal's single author; see [Author](#author)                                                                      |
+| `email`          | The Contact page address and the footer's mail icon; leave it empty to hide both                                        |
+| `socials`        | The icon links in the footer and the chips on the Contact page; empty by default                                        |
+| `subscriptions`  | `enabled` opens email sign-up in production, `popup` adds the sign-up popup; see [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) |
 
 Each social link takes a `label`, an `href`, and an `icon`, which is a file name from [src/icons/bootstrap](./src/icons/bootstrap) such as `twitter-x`, `bluesky`, `github`, `mastodon`, `instagram`, or `threads`.
 
@@ -197,7 +197,7 @@ To add another filter, such as a country:
 - **The reading column** is set in Newsreader at 18–20px, 37rem wide, which keeps lines near 70 characters. Pictures break out wider.
 - **On this page** lists the body's `##` and `###` headings in a rail from `80rem`, and highlights the one being read. It appears when a post has at least two headings. Change the filter in [src/components/blog/TableOfContents.astro](./src/components/blog/TableOfContents.astro) to include `####`.
 - **Tags** link to their tag pages.
-- **Email sign-up**, [src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro), follows the share row once `subscriptions.enabled` is `true`. Its Turnstile site key is the default for `PUBLIC_TURNSTILE_SITE_KEY` in `astro.config.mjs`. While sign-up is off, neither the form nor its script is on the page. See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md).
+- **Email sign-up** for the weekly map, [src/components/blog/SubscribeForm.astro](./src/components/blog/SubscribeForm.astro), follows the share row once `subscriptions.enabled` is `true`. Its Turnstile site key is the default for `PUBLIC_TURNSTILE_SITE_KEY` in `astro.config.mjs`. While sign-up is off, neither the form nor its script is on the page. See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md).
 - **The share sheet**, [src/components/blog/ShareSheet.astro](./src/components/blog/ShareSheet.astro), is a native `<dialog>` opened by the Share buttons in the byline and at the end of the article, or by any element with `data-share-open`. It lists seven services, with Bluesky, Mastodon, Reddit, and Pinterest behind **More**, and a copy-link field. Every target is a plain link built from the canonical URL, so no third-party script is loaded. Add or reorder entries in `targets` and `extraTargets`. The Share buttons are hidden without JavaScript.
 - **Previous and next** follow publication order across the whole journal: Previous is the older post, Next the newer one.
 - **Keep reading** shows three related posts, scored in `getRelatedPosts` in [src/lib/posts.ts](./src/lib/posts.ts): two points for sharing the topic, one for each shared tag, newest first on a tie.
@@ -270,7 +270,7 @@ To add an icon, save its SVG from [lucide.dev](https://lucide.dev/) into `src/ic
 
 Readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head. They reach you through the profiles in `siteConfig.socials`, shown in the footer and on the Contact page, and through `siteConfig.email` once you set it. There is no contact form.
 
-The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It is on while `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), describes what the site and the subscriber list store; the footer and the form link to it.
+The only forms that send anything are the sign-ups for the weekly map: one at the end of each post, and one in a popup, [src/components/chrome/NewsletterPopup.astro](./src/components/chrome/NewsletterPopup.astro), that opens at most once per visit after a reader has spent a while on a page. Both store addresses in Cloudflare D1 with double opt-in and send confirmation emails through Resend. They are on while `subscriptions.enabled` is `true`, and the popup also needs `subscriptions.popup`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers when the popup opens, setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), describes what the site, the popup, and the subscriber list store; the footer and both forms link to it.
 
 ## Routes
 

@@ -452,6 +452,7 @@ describe("sending with Resend", () => {
     assert.equal(body.from, FROM);
     assert.deepEqual(body.to, ["reader@example.com"]);
     assert.equal(body.subject, "Confirm your subscription to Diary From the Road");
+    assert.match(String(body.text), /the weekly map from Diary From the Road: one email a week/);
     assert.deepEqual(body.headers, {
       "List-Unsubscribe": `<${ORIGIN}/unsubscribe/?token=${row?.unsubscribe_token}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

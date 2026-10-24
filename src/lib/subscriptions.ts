@@ -141,7 +141,7 @@ export function confirmationEmail(
     to,
     subject: `Confirm your subscription to ${siteName}`,
     text: [
-      `Someone, hopefully you, asked to get an email when a new post is published on ${siteName}.`,
+      `Someone, hopefully you, asked to get the weekly map from ${siteName}: one email a week with a Google Maps list of places worth finding on the road.`,
       "",
       "Confirm your subscription (the link works for 48 hours):",
       confirmUrl,
