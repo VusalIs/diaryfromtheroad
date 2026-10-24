@@ -55,6 +55,7 @@ export const navigation: NavLink[] = [
   { label: "Journal", href: "/blog/" },
   { label: "Apps", href: "/apps/" },
   { label: "About", href: "/about/" },
+  { label: "Contact", href: "/contact/" },
 ];
 
 /** The footer's links: only what the header navigation doesn't already offer. */

@@ -26,11 +26,11 @@ Set `siteConfig.siteUrl` before building for production. Canonical URLs, social 
 
 Each social link takes a `label`, an `href`, and an `icon`, which is a file name from [src/icons/bootstrap](./src/icons/bootstrap) such as `twitter-x`, `bluesky`, `github`, `mastodon`, `instagram`, or `threads`.
 
-`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. The header holds only Journal, Apps, and About, plus search and the theme toggle; the wordmark links home. Topics have no header link: readers reach them from the Journal's "Browse by topic" link and Topic menu, each card's topic label, and the article breadcrumbs. `footerLinks` is the footer's single row of links, beside the wordmark, and holds only what the header doesn't: the RSS feed and the privacy notice. Tags, the Tags page, and the Contact page are not linked from the header or footer; tags are reached from articles and the Journal's filter.
+`navigation` in the same file is the header and mobile menu. A link is marked as the current page when the path starts with its `href`, so Journal stays highlighted while reading a post. The header holds Journal, Apps, About, and Contact, plus search and the theme toggle; the wordmark links home. Topics have no header link: readers reach them from the Journal's "Browse by topic" link and Topic menu, each card's topic label, and the article breadcrumbs. `footerLinks` is the footer's single row of links, beside the wordmark, and holds only what the header doesn't: the RSS feed and the privacy notice. Tags and the Tags page are not linked from the header or footer; tags are reached from articles and the Journal's filter.
 
 The header and footer show `name` as a serif wordmark. The favicon is [public/favicon.svg](./public/favicon.svg), a plain "D" monogram in the ink and canvas colors, written into the file; replace it with your own mark. The footer's copyright line and type credit are in [src/components/chrome/SiteFooter.astro](./src/components/chrome/SiteFooter.astro).
 
-The About and Contact pages are written directly in [src/pages/about.astro](./src/pages/about.astro) and [src/pages/contact.astro](./src/pages/contact.astro). The About page shows the site description under its heading; a comment in the file marks where your own text goes. The Contact page has no form: it links the Instagram profile in `socials` by its handle, lists the other profiles and the RSS feed under "Elsewhere", and shows `email` when it is set.
+The About and Contact pages are written directly in [src/pages/about.astro](./src/pages/about.astro) and [src/pages/contact.astro](./src/pages/contact.astro). The About text uses the `prose-article` style below the page header. The Contact page has no form: it links the Instagram profile in `socials` by its handle, lists the other profiles and the RSS feed under "Elsewhere", and shows `email` when it is set.
 
 ## Author
 
@@ -270,7 +270,7 @@ To add an icon, save its SVG from [lucide.dev](https://lucide.dev/) into `src/ic
 
 Readers follow the journal through the RSS feed, linked in the footer of every page and on the Contact page, and found by feed readers through the `<link rel="alternate">` tag in every page's head. They reach you through the profiles in `siteConfig.socials`, shown in the footer and on the Contact page, and through `siteConfig.email` once you set it. There is no contact form.
 
-The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It stays closed until its production setup is done and `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), says what the list stores and why; the form and the footer link to it.
+The only form that sends anything is the email sign-up at the end of each post, which stores addresses in Cloudflare D1 with double opt-in and sends confirmation emails through Resend. It stays closed until its production setup is done and `subscriptions.enabled` is `true`; [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md) covers setup, exporting the list, and unsubscribing. The privacy notice, [src/pages/privacy.astro](./src/pages/privacy.astro), describes the site as it works today, without sign-up; the footer links to it, and so does the form once it is enabled. Add the subscriber list to it before opening sign-up (the subscriber-list wording it had before is in commit `6a906c9`).
 
 ## Routes
 
@@ -385,4 +385,4 @@ The site is a Cloudflare Worker, built with the `@astrojs/cloudflare` adapter: `
 - Replace the tags in `src/config/taxonomy.ts` with the ones you publish under.
 - Write the About page.
 - Replace `public/favicon.svg` (a stand-in monogram), and, if you like, `public/og-image.png` with a photograph of your own.
-- Before opening email sign-up, follow [Setting up production](./SUBSCRIPTIONS.md#setting-up-production): the D1 database ID in `wrangler.jsonc`, Turnstile, a verified sending domain in Resend, `EMAIL_FROM`, and the two secrets. Then set `subscriptions.enabled` to `true`, and check that the privacy notice still matches.
+- Before opening email sign-up, follow [Setting up production](./SUBSCRIPTIONS.md#setting-up-production): the D1 database ID in `wrangler.jsonc`, Turnstile, a verified sending domain in Resend, `EMAIL_FROM`, and the two secrets. Then set `subscriptions.enabled` to `true`, and add the subscriber list to the privacy notice.

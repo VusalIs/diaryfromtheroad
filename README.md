@@ -10,7 +10,7 @@ Posts and apps are Markdown or MDX files in Astro content collections, settings 
 - **Journal** (`/blog/`): every post, with search and topic and tag filters; posts at `/blog/<slug>/`
 - **Topics** (`/categories/`) and **Tags** (`/tags/`): a page per topic and tag that has posts
 - **Apps** (`/apps/`): every app on one page, one section per app
-- **About** (`/about/`), **Contact** (`/contact/`, links to the profiles in the site config; no form), and **Privacy** (`/privacy/`, what the email sign-up stores)
+- **About** (`/about/`), **Contact** (`/contact/`, links to the profiles in the site config; no form), and **Privacy** (`/privacy/`, what the site does with visitors' information)
 - A search palette on every page (`Ctrl/⌘ + K` or `/`), light and dark modes, and the RSS feed at `/rss.xml`
 - Email sign-up at the end of each post, with double opt-in; closed until its production setup is done. See [SUBSCRIPTIONS.md](./SUBSCRIPTIONS.md)
 
@@ -195,10 +195,9 @@ No code changes are needed: `siteUrl` already points at the domain.
 - Connect `diaryfromtheroad.com` ([Connecting diaryfromtheroad.com](#connecting-diaryfromtheroadcom)). `siteUrl` already points at it, so until then, share links, link previews, RSS item links, and the sitemap point at a domain that doesn't answer yet.
 - Set `email` in `src/config/site.ts` if you want it on the Contact page and in the footer; it is empty and hidden now.
 - Replace the tags in `src/config/taxonomy.ts`; they are still the theme's.
-- Write the About text where the TODO is in `src/pages/about.astro`.
 - Replace `public/favicon.svg`, a plain "D" monogram in the site's colors, with your own mark if you have one, and optionally `public/og-image.png`.
 - For email sign-up, follow [Setting up production](./SUBSCRIPTIONS.md#setting-up-production): the D1 database and its binding in `wrangler.jsonc`, Turnstile, a verified sending domain in Resend, `EMAIL_FROM`, and the two secrets. Then check everything and set `subscriptions.enabled` to `true`; until then sign-up stays closed.
-- Read the privacy notice in `src/pages/privacy.astro` and adjust it if you run the list differently. It describes what the code does and makes no legal claims; check what applies to you before opening sign-up.
+- The privacy notice in `src/pages/privacy.astro` describes the site as it works today, with no sign-up. Before opening sign-up, add what the subscriber list stores (the subscriber-list wording it had before is in commit `6a906c9`). It makes no legal claims; check what applies to you.
 
 ## Credits and license
 

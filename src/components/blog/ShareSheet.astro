@@ -13,7 +13,29 @@ const { title, url } = Astro.props;
 const link = encodeURIComponent(url);
 const text = encodeURIComponent(title);
 
+/* The most useful targets come first; the rest wait behind "More". */
 const targets = [
+  {
+    label: "WhatsApp",
+    icon: "social-whatsapp",
+    brand: "#1eb355",
+    href: `https://api.whatsapp.com/send?text=${text}%20${link}`,
+  },
+  {
+    label: "Reddit",
+    icon: "social-reddit",
+    brand: "#e03d00",
+    href: `https://www.reddit.com/submit?url=${link}&title=${text}`,
+  },
+  {
+    label: "Email",
+    icon: "social-envelope",
+    brand: "#c2413f",
+    href: `mailto:?subject=${text}&body=${link}`,
+  },
+];
+
+const extraTargets = [
   {
     label: "X",
     icon: "social-twitter-x",
@@ -33,18 +55,6 @@ const targets = [
     href: `https://www.facebook.com/sharer/sharer.php?u=${link}`,
   },
   {
-    label: "Email",
-    icon: "social-envelope",
-    brand: "#c2413f",
-    href: `mailto:?subject=${text}&body=${link}`,
-  },
-  {
-    label: "WhatsApp",
-    icon: "social-whatsapp",
-    brand: "#1eb355",
-    href: `https://api.whatsapp.com/send?text=${text}%20${link}`,
-  },
-  {
     label: "Telegram",
     icon: "social-telegram",
     brand: "#2596d8",
@@ -56,9 +66,6 @@ const targets = [
     brand: "#0e0e0c",
     href: `https://www.threads.net/intent/post?text=${text}%20${link}`,
   },
-];
-
-const extraTargets = [
   {
     label: "Bluesky",
     icon: "social-bluesky",
@@ -70,12 +77,6 @@ const extraTargets = [
     icon: "social-mastodon",
     brand: "#5a5bd6",
     href: `https://mastodonshare.com/?text=${text}&url=${link}`,
-  },
-  {
-    label: "Reddit",
-    icon: "social-reddit",
-    brand: "#e03d00",
-    href: `https://www.reddit.com/submit?url=${link}&title=${text}`,
   },
   {
     label: "Pinterest",
@@ -102,7 +103,35 @@ const extraTargets = [
       </button>
     </div>
 
-    <ul class="sheet-targets mt-7">
+    <div class="mt-7">
+      <label for="share-url" class="text-sm text-muted">
+        Page link
+      </label>
+      <div class="mt-2 flex items-center gap-2 rounded-full bg-sunken p-1.5 pl-4">
+        <input
+          id="share-url"
+          class="min-w-0 flex-1 bg-transparent text-[0.8rem] text-muted outline-none"
+          type="text"
+          readonly
+          value={url}
+          aria-describedby="share-copy-status"
+          data-share-url
+        />
+        <button type="button" class="btn btn-primary btn-sm" data-share-copy>
+          <Icon name="copy" class="size-4" />
+          <span data-share-copy-label>Copy link</span>
+        </button>
+      </div>
+      <p
+        id="share-copy-status"
+        class="mt-2 min-h-5 text-sm text-muted"
+        role="status"
+        data-share-copy-status
+      ></p>
+    </div>
+
+    <p class="mt-5 text-sm text-muted">Or share it on</p>
+    <ul class="sheet-targets mt-4">
       {targets.map((target) => (
         <li>
           <a
@@ -121,7 +150,12 @@ const extraTargets = [
         </li>
       ))}
       <li data-share-more-item>
-        <button type="button" class="sheet-target sheet-target-quiet" data-share-more>
+        <button
+          type="button"
+          class="sheet-target sheet-target-quiet"
+          aria-label="More sharing options"
+          data-share-more
+        >
           <span class="sheet-icon">
             <Icon name="social-three-dots" class="size-5" />
           </span>
@@ -146,28 +180,6 @@ const extraTargets = [
         </li>
       ))}
     </ul>
-
-    <div class="mt-8">
-      <label for="share-url" class="text-sm text-muted">
-        Page link
-      </label>
-      <div class="mt-2 flex items-center gap-2 rounded-full bg-sunken p-1.5 pl-4">
-        <input
-          id="share-url"
-          class="min-w-0 flex-1 bg-transparent text-[0.8rem] text-muted outline-none"
-          type="text"
-          readonly
-          value={url}
-          data-share-url
-        />
-        <button type="button" class="btn btn-primary btn-sm" data-share-copy>
-          <Icon name="copy" class="size-4" />
-          <span aria-live="polite" data-share-copy-label>
-            Copy
-          </span>
-        </button>
-      </div>
-    </div>
   </div>
 </dialog>
 
@@ -307,21 +319,33 @@ const extraTargets = [
 
     const copy = sheet.querySelector<HTMLButtonElement>("[data-share-copy]");
     const label = sheet.querySelector<HTMLElement>("[data-share-copy-label]");
+    const status = sheet.querySelector<HTMLElement>("[data-share-copy-status]");
     const field = sheet.querySelector<HTMLInputElement>("[data-share-url]");
     let restore = 0;
 
+    const reset = () => {
+      window.clearTimeout(restore);
+      if (label) label.textContent = "Copy link";
+      if (status) status.textContent = "";
+    };
+    sheet.addEventListener("close", reset);
+    field?.addEventListener("focus", () => field.select());
+
     copy?.addEventListener("click", async () => {
-      if (!field || !label) return;
-      let message = "Copied";
+      if (!field || !label || !status) return;
+      reset();
       try {
         await navigator.clipboard.writeText(field.value);
+        label.textContent = "Copied";
+        status.textContent = "Link copied.";
+        restore = window.setTimeout(reset, 2400);
       } catch {
+        // Clipboard access can be blocked; leave the link selected so it can be copied by hand.
+        field.focus();
         field.select();
-        message = "Press Ctrl+C";
+        status.textContent =
+          "Couldn't copy automatically. The link is selected, so you can copy it.";
       }
-      label.textContent = message;
-      window.clearTimeout(restore);
-      restore = window.setTimeout(() => (label.textContent = "Copy"), 2400);
     });
   }
 </script>

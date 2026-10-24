@@ -18,7 +18,7 @@ Readers can leave their email address to hear about new posts. Addresses are sto
 | Database schema        | [migrations/0001_create_subscribers.sql](./migrations/0001_create_subscribers.sql)   |
 | Tests                  | [tests/subscriptions.test.ts](./tests/subscriptions.test.ts), run by `npm test`      |
 
-1. **The form** sits at the end of every article, after the share row and before Previous and Next: a reader who has just finished a post is the one most likely to want the next. It is hidden without JavaScript, which the spam check needs, and Cloudflare's Turnstile script loads only when someone focuses the field. It links to the privacy notice at `/privacy/`, which the footer links too.
+1. **The form** sits at the end of every article, after the share row and before Previous and Next: a reader who has just finished a post is the one most likely to want the next. It is hidden without JavaScript, which the spam check needs, and Cloudflare's Turnstile script loads only when someone focuses the field. It links to the privacy notice at `/privacy/`, which the footer links too. That page currently describes the site without sign-up, so it needs a section on the subscriber list before sign-up opens (the subscriber-list wording it had before is in commit `6a906c9`).
 2. **Sign-up** posts the address and a Turnstile token to `/api/subscribe/`. The server checks the token with Turnstile's Siteverify, validates and normalizes the address (trimmed, lowercased, at most 254 characters), stores it as `pending`, and sends the confirmation email through Resend's HTTP API. The reply is the same whether the address is new, pending, or already subscribed, so it never reveals who is on the list. If Resend refuses the email or can't be reached, the sign-up is rolled back.
 3. **Confirming** opens `/subscribe/confirm/?token=…` on `siteUrl`, which shows a button; the subscription becomes `active` when it is pressed. The extra click keeps mail scanners that follow links from confirming on someone's behalf. A link works once, for 48 hours.
 4. **Unsubscribing** opens `/unsubscribe/?token=…`, which also shows a button. The confirmation email carries the same link in `List-Unsubscribe` headers, so mail apps can offer their own unsubscribe button, which posts to the link. A confirmed subscriber is kept as `unsubscribed`, so exports leave them out; an address that was never confirmed is deleted.
@@ -97,7 +97,7 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
    - `npx wrangler d1 migrations list diary-subscribers --remote` reports no migrations left to apply.
    - Resend shows the domain as Verified, and `EMAIL_FROM` uses it.
    - The Turnstile widget lists the domain in `siteUrl`.
-   - The privacy notice at `/privacy/` matches how you run the list.
+   - The privacy notice at `/privacy/` has a section on what the subscriber list stores and how to unsubscribe.
 
 9. **Open sign-up:** set `subscriptions.enabled: true` in [src/config/site.ts](./src/config/site.ts), give the build the site key (`PUBLIC_TURNSTILE_SITE_KEY=<site key>` in `.env.production`, which is git-ignored, or a build variable in the Worker's build settings if Cloudflare builds from Git), then build and deploy again.
 10. **Test it on the live site** with `npx wrangler tail` running: sign up with your own address at the end of a post, confirm from the email, check the row (below), and unsubscribe from the email's link.

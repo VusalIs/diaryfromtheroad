@@ -9,12 +9,48 @@ const crumbs = [{ label: "Home", href: "/" }, { label: "About" }];
 
 <BaseLayout
   title="About"
-  description={`About ${siteConfig.name}. ${siteConfig.description}`}
+  description={`Who writes ${siteConfig.name}, and what it covers: remote work, travel in Southeast Asia, real costs, motorcycles, and building software.`}
   structuredData={withBreadcrumbs(
     { "@type": "AboutPage", name: `About ${siteConfig.name}` },
     crumbs,
   )}
 >
-  {/* TODO: add the About text in your own words, below the header, using the prose-article style. */}
-  <PageHeader title="About" lead={siteConfig.description} crumbs={crumbs} />
+  <PageHeader
+    title="About"
+    lead="I'm Vusal, a software developer from Azerbaijan. I work remotely, and for now I'm based in Hanoi while I travel around Southeast Asia."
+    crumbs={crumbs}
+  />
+
+  <div class="shell">
+    <div class="prose-article max-w-[37rem]">
+      <p>
+        {siteConfig.name} is where I write down what that actually looks like: where I go, how I get
+        around, what things cost, and what I'm building alongside my job.
+      </p>
+      <p>
+        I'm not doing this on a big budget. I earn an ordinary remote salary, and part of the point
+        is to find out how far it goes: which places work, what a month really costs, and where the
+        money goes.
+      </p>
+      <p>Expect posts about:</p>
+      <ul>
+        <li>travelling and living in different parts of Southeast Asia</li>
+        <li>spending breakdowns and the real cost of living</li>
+        <li>exploring by motorcycle</li>
+        <li>working remotely while moving around</li>
+        <li>
+          the software and small projects I'm building to earn something beyond my salary, including
+          the ones that don't work out
+        </li>
+      </ul>
+      <p>
+        Some posts will be practical. Others will just be about the experience. I'd rather write
+        things down as they happen, numbers and loose ends included, than wait until everything
+        looks tidy.
+      </p>
+      <p>
+        If you want to say hello, my <a href="/contact/">contact page</a> has the links.
+      </p>
+    </div>
+  </div>
 </BaseLayout>
