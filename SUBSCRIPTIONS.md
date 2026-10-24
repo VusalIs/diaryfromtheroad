@@ -40,7 +40,7 @@ In production, sign-up opens only when all of these hold. If any is missing, the
 - The `RESEND_API_KEY` secret is set and looks like a Resend key (`re_…`).
 - The `EMAIL_FROM` variable is one valid sender, such as `Diary From the Road <posts@your-domain>`.
 
-The form appears in a production build only when `subscriptions.enabled` is `true` and `PUBLIC_TURNSTILE_SITE_KEY` is set at build time. A build with sign-up enabled fails if that key is a Cloudflare test key or `siteUrl` is still the placeholder.
+The form appears in a production build only when `subscriptions.enabled` is `true` and the build has a Turnstile site key. The site's real key is the default for `PUBLIC_TURNSTILE_SITE_KEY` in [astro.config.mjs](./astro.config.mjs); it is public, so it lives in the code, and an environment variable of the same name overrides it. A build with sign-up enabled fails if that key is a Cloudflare test key or `siteUrl` is still the placeholder.
 
 **What the code can't check is that the sender's domain is verified in Resend.** A sending-only Resend API key, the right kind for this, can't read domain status. That is why `subscriptions.enabled` is a switch you turn on yourself after checking. If the domain isn't verified, Resend refuses every email with `403 validation_error`, each sign-up is rolled back with "The confirmation email couldn't be sent", and the log says so.
 
@@ -99,7 +99,7 @@ Run the commands from the project folder. Commands that touch your Cloudflare ac
    - The Turnstile widget lists the domain in `siteUrl`.
    - The privacy notice at `/privacy/` has a section on what the subscriber list stores and how to unsubscribe.
 
-9. **Open sign-up:** set `subscriptions.enabled: true` in [src/config/site.ts](./src/config/site.ts), give the build the site key (`PUBLIC_TURNSTILE_SITE_KEY=<site key>` in `.env.production`, which is git-ignored, or a build variable in the Worker's build settings if Cloudflare builds from Git), then build and deploy again.
+9. **Open sign-up:** set `subscriptions.enabled: true` in [src/config/site.ts](./src/config/site.ts), check that the site key in [astro.config.mjs](./astro.config.mjs) is the widget's (it is set for `diaryfromtheroad.com`), then build and deploy again.
 10. **Test it on the live site** with `npx wrangler tail` running: sign up with your own address at the end of a post, confirm from the email, check the row (below), and unsubscribe from the email's link.
 
 To close sign-up again, set `subscriptions.enabled` back to `false` and deploy.

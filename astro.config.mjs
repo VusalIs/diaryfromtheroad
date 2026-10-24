@@ -40,11 +40,12 @@ export default defineConfig({
   /* Email sign-up (SUBSCRIPTIONS.md). */
   env: {
     schema: {
-      /* Public, and read at build time: production builds render the form only when it is set. */
+      /* The Turnstile site key: public (it ends up in the page), read at build time, and accepted only on
+         diaryfromtheroad.com. .env.development overrides it with Cloudflare's test key for `npm run dev`. */
       PUBLIC_TURNSTILE_SITE_KEY: envField.string({
         context: "client",
         access: "public",
-        optional: true,
+        default: "0x4AAAAAAFjn1y199eU_DnSq",
       }),
       /* `access: "secret"` values are read from the Worker when a request is handled, never at build time. */
       TURNSTILE_SECRET_KEY: envField.string({
